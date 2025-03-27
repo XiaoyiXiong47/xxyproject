@@ -1,7 +1,8 @@
 mediapipe
 opencv-python
-
+matplotlib
 numpy
 scikit-image
 scipy
 scikit-learn
+xml
