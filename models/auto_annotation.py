@@ -9,6 +9,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from scipy.spatial.transform import Rotation as R
+import pandas as pd
+import xml.dom.minidom as minidom
+
+def diff_in_z(v1, v2):
+    z_diff = abs(v1[2] - v2[2])
+    z_thresh = 0.1
+    if z_diff > z_thresh:
+        return True
+    return False
+
+def save_pretty_xml(xml_tree, filename="hand_angles.xml"):
+    xml_str = ET.tostring(xml_tree.getroot(), encoding="utf-8")
+
+    dom = minidom.parseString(xml_str)
+    pretty_xml_as_string = dom.toprettyxml(indent="  ")
+
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(pretty_xml_as_string)
+
+    print(f"{filename} saved!")
+
 
 # Calculate angle between two vectors
 def calculate_angle(a, b, c):
@@ -22,7 +43,7 @@ def calculate_angle(a, b, c):
 
     # calculate angle
     cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))  # 防止浮点数误差
+    angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
     return np.degrees(angle)  # in degrees
 
 def convert_angles(x):
@@ -60,6 +81,7 @@ def load_video():
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'      # only left hand detected
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'      # three times
     file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'      # stable hand shape
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00626.mp4'
 
     # MacOS path
     video_id = file_path.split('\\')[-1]
@@ -118,6 +140,32 @@ def compute_hand_rotation(wrist, thumb, index):
 
     return yaw, pitch, roll
 
+def build_xml_frames_with_frame_index(all_angles):
+    root = ET.Element("sequence")
+
+    for idx, angle_row in enumerate(all_angles):
+        frame = ET.SubElement(root, "frame", index=str(idx))  # keep frame number
+
+        hand = ET.SubElement(frame, "hand", side="A")  # one hand
+
+        # j1 to j3 for f0 to f4
+        for i in range(5):
+            j1 = angle_row[i * 3] if i * 3 < len(angle_row) else ""
+            j2 = angle_row[i * 3 + 1] if i * 3 + 1 < len(angle_row) else ""
+            j3 = angle_row[i * 3 + 2] if i * 3 + 2 < len(angle_row) else ""
+            finger = ET.SubElement(hand, f"f{i}")
+            finger.set("j1", f"{j1:.1f}" if j1 != "" and not np.isnan(j1) else "")
+            finger.set("j2", f"{j2:.1f}" if j2 != "" and not np.isnan(j2) else "")
+            finger.set("j3", f"{j3:.1f}" if j3 != "" and not np.isnan(j3) else "")
+
+        # keep structure
+        ET.SubElement(hand, "orientation", xAngle="", yAngle="", zAngle="")
+        location = ET.SubElement(hand, "location")
+        ET.SubElement(location, "loc", x="", y="", z="")
+        ET.SubElement(hand, "movement")
+
+    return ET.ElementTree(root)
+
 
 def main():
     cap, video_id = load_video()
@@ -139,6 +187,22 @@ def main():
 
     mp_hands, mp_face, hands, face_detection = init_mediapipe()
 
+    joint_triplets = [
+        (0, 1, 2), (1, 2, 3), (2, 3, 4),  # f0 - j1, j2, j3
+        (0, 5, 6), (5, 6, 7), (6, 7, 8),  # f1 - j1, j2, j3
+        (0, 9, 10), (9, 10, 11), (10, 11, 12),  # f2 - j1, j2, j3
+        (0, 13, 14), (13, 14, 15), (14, 15, 16),  # f3 - j1, j2, j3
+        (0, 17, 18), (17, 18, 19), (18, 19, 20),  # f4 - j1, j2, j3
+    ]
+    joint_names = [
+        "f0_j1", "f0_j2", "f0_j3",
+        "f1_j1", "f1_j2", "f1_j3",
+        "f2_j1", "f2_j2", "f2_j3",
+        "f3_j1", "f3_j2", "f3_j3",
+        "f4_j1", "f4_j2", "f4_j3"
+    ]
+    all_angles = []
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -149,14 +213,20 @@ def main():
 
         # hand detection
         hand_results = hands.process(rgb_frame)
+
+        frame_angles = []
         if hand_results.multi_hand_landmarks:
             print("+++++++++++++++++++++++++++++++++++++")
             print("len(hand_results.multi_hand_landmarks)", len(hand_results.multi_hand_landmarks))
             for hand_landmarks, handedness in zip(hand_results.multi_hand_landmarks, hand_results.multi_handedness):
-                landmarks = [(lm.x * frame.shape[1], lm.y * frame.shape[0]) for lm in hand_landmarks.landmark]
+                # # in 2D-coordinate
+                # landmarks = [(lm.x * frame.shape[1], lm.y * frame.shape[0]) for lm in hand_landmarks.landmark]
+                # in 3D-coordinate
+                landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
 
                 # wrist landmark
                 wrist = landmarks[0]
+                print(wrist)
                 # Determine if it's left or right hand
                 if handedness.classification[0].label == "Left":
                     left_wrist = landmarks[0]
@@ -179,37 +249,54 @@ def main():
                         frame_numbers.append(frame_count)
                     prev_right_wrist = right_wrist
 
-                # calculate bending angle for each finger
-                thumb_angles = []
-                index_angles = []
-                middle_angles = []
-                ring_angles = []
-                pinky_angles = []
-                thumb_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[1], landmarks[2])))
-                thumb_angles.append(convert_angles(calculate_angle(landmarks[1], landmarks[2], landmarks[3])))
-                thumb_angles.append(convert_angles(calculate_angle(landmarks[2], landmarks[3], landmarks[4])))
+                frame_angles = []
 
-                index_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[5], landmarks[6])))
-                index_angles.append(convert_angles(calculate_angle(landmarks[5], landmarks[6], landmarks[7])))
-                index_angles.append(convert_angles(calculate_angle(landmarks[6], landmarks[7], landmarks[8])))
+                for triplet in joint_triplets:
+                    a, b, c = [landmarks[i] for i in triplet]
+                    angle = calculate_angle(a, b, c)
+                    frame_angles.append(convert_angles(angle))
 
-                middle_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[9], landmarks[10])))
-                middle_angles.append(convert_angles(calculate_angle(landmarks[9], landmarks[10], landmarks[11])))
-                middle_angles.append(convert_angles(calculate_angle(landmarks[10], landmarks[11], landmarks[12])))
+                print("frame_count:", frame_count)
 
-                ring_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[13], landmarks[14])))
-                ring_angles.append(convert_angles(calculate_angle(landmarks[13], landmarks[14], landmarks[15])))
-                ring_angles.append(convert_angles(calculate_angle(landmarks[14], landmarks[15], landmarks[16])))
+                num_finger = 0
+                while num_finger <= 4:
+                    print(f"f{num_finger}_j1: {frame_angles[num_finger*3 + 0]:.2f}, j2: {frame_angles[num_finger*3 + 1]:.2f}, j3: {frame_angles[num_finger*3 + 2]:.2f}")
+                    num_finger += 1
 
-                pinky_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[17], landmarks[18])))
-                pinky_angles.append(convert_angles(calculate_angle(landmarks[17], landmarks[18], landmarks[19])))
-                pinky_angles.append(convert_angles(calculate_angle(landmarks[18], landmarks[19], landmarks[20])))
+                all_angles.append(frame_angles)
 
-                print(f"f0_j1: {thumb_angles[0]:.2f}, j2: {thumb_angles[1]:.2f}, 3: {thumb_angles[2]:.2f}")
-                print(f"f1_j1: {index_angles[0]:.2f}, j2: {index_angles[1]:.2f}, j3: {index_angles[2]:.2f}")
-                print(f"f2_j1: {middle_angles[0]:.2f}, j2: {middle_angles[1]:.2f}, j3: {middle_angles[2]:.2f}")
-                print(f"f3_j1: {ring_angles[0]:.2f}, j2: {ring_angles[1]:.2f}, j3: {ring_angles[2]:.2f}")
-                print(f"f4_j1: {pinky_angles[0]:.2f}, j2: {pinky_angles[1]:.2f}, j3: {pinky_angles[2]:.2f}")
+
+                # # calculate bending angle for each finger
+                # thumb_angles = []
+                # index_angles = []
+                # middle_angles = []
+                # ring_angles = []
+                # pinky_angles = []
+                # thumb_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[1], landmarks[2])))
+                # thumb_angles.append(convert_angles(calculate_angle(landmarks[1], landmarks[2], landmarks[3])))
+                # thumb_angles.append(convert_angles(calculate_angle(landmarks[2], landmarks[3], landmarks[4])))
+                #
+                # index_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[5], landmarks[6])))
+                # index_angles.append(convert_angles(calculate_angle(landmarks[5], landmarks[6], landmarks[7])))
+                # index_angles.append(convert_angles(calculate_angle(landmarks[6], landmarks[7], landmarks[8])))
+                #
+                # middle_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[9], landmarks[10])))
+                # middle_angles.append(convert_angles(calculate_angle(landmarks[9], landmarks[10], landmarks[11])))
+                # middle_angles.append(convert_angles(calculate_angle(landmarks[10], landmarks[11], landmarks[12])))
+                #
+                # ring_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[13], landmarks[14])))
+                # ring_angles.append(convert_angles(calculate_angle(landmarks[13], landmarks[14], landmarks[15])))
+                # ring_angles.append(convert_angles(calculate_angle(landmarks[14], landmarks[15], landmarks[16])))
+                #
+                # pinky_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[17], landmarks[18])))
+                # pinky_angles.append(convert_angles(calculate_angle(landmarks[17], landmarks[18], landmarks[19])))
+                # pinky_angles.append(convert_angles(calculate_angle(landmarks[18], landmarks[19], landmarks[20])))
+                #
+                # print(f"f0_j1: {thumb_angles[0]:.2f}, j2: {thumb_angles[1]:.2f}, 3: {thumb_angles[2]:.2f}")
+                # print(f"f1_j1: {index_angles[0]:.2f}, j2: {index_angles[1]:.2f}, j3: {index_angles[2]:.2f}")
+                # print(f"f2_j1: {middle_angles[0]:.2f}, j2: {middle_angles[1]:.2f}, j3: {middle_angles[2]:.2f}")
+                # print(f"f3_j1: {ring_angles[0]:.2f}, j2: {ring_angles[1]:.2f}, j3: {ring_angles[2]:.2f}")
+                # print(f"f4_j1: {pinky_angles[0]:.2f}, j2: {pinky_angles[1]:.2f}, j3: {pinky_angles[2]:.2f}")
 
 
                 # draw hand landmarks
@@ -217,6 +304,9 @@ def main():
         else:
             left_speeds.append(0)
             frame_numbers.append(frame_count)
+            frame_angles = [np.nan] * len(joint_triplets)
+            all_angles.append(frame_angles)
+
 
         # face detection
         face_results = face_detection.process(rgb_frame)
@@ -238,6 +328,15 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+    #
+    # df = pd.DataFrame(all_angles, columns=joint_names)
+    # df.to_csv("hand_joint_angles.csv", index=False)
+    # print("Hand joint angles saved at hand_joint_angles.csv")
+
+    xml_tree = build_xml_frames_with_frame_index(all_angles)
+    save_pretty_xml(xml_tree, "hand_angles.xml")
 
     print(frame_numbers)
 
