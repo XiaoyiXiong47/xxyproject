@@ -9,8 +9,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from scipy.spatial.transform import Rotation as R
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import xml.dom.minidom as minidom
+
+from utils import preprocess
 
 def diff_in_z(v1, v2):
     z_diff = abs(v1[2] - v2[2])
@@ -31,9 +34,29 @@ def save_pretty_xml(xml_tree, filename="hand_angles.xml"):
     print(f"{filename} saved!")
 
 
+def compute_hand_rotation(wrist, index, picky):
+    """Given coordinates of wrist, index, and picky, compute normal vector of the palm"""
+    v1 = np.array(picky) - np.array(wrist)
+    v2 = np.array(index) - np.array(wrist)
+
+    normal = np.cross(v1, v2)
+
+    # normalisation
+    normal = normal / np.linalg.norm(normal)
+
+    # ratation matrix
+    ref_vector = np.array([0, 0, 1])  # reference direction（Z-axis）
+    rot_matrix = np.linalg.inv(R.align_vectors([normal], [ref_vector])[0].as_matrix())
+
+    # convert to Euler angle (yaw, pitch, roll)
+    yaw, pitch, roll = R.from_matrix(rot_matrix).as_euler('zyx', degrees=True)
+
+    return normal, yaw, pitch, roll
+
 # Calculate angle between two vectors
-def calculate_angle(a, b, c):
+def calculate_angle(a, b, c, normal):
     """ Angle between keypoints a, b, and c (in degrees) """
+
     a = np.array(a)  # node 1
     b = np.array(b)  # node 2 - where the angle is calculated
     c = np.array(c)  # node 3
@@ -74,16 +97,13 @@ def init_mediapipe():
     return mp_hands, mp_face, hands, face_detection
 
 
-def load_video():
-    # load video
+def load_video(file_path):
+    """
+    Use OpenCV to load given sign video.
+    :param file_path: The path of sign video
+    :return:
+    """
 
-    # Windows path
-    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'      # only left hand detected
-    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'      # three times
-    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'      # stable hand shape
-    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00626.mp4'
-
-    # MacOS path
     video_id = file_path.split('\\')[-1]
     cap = cv2.VideoCapture(file_path)
     return cap, video_id
@@ -138,7 +158,7 @@ def compute_hand_rotation(wrist, thumb, index):
     yaw, pitch, roll = R.from_matrix(rot_matrix).as_euler('zyx', degrees=True)
     # z-axis, y-axis, x-axis
 
-    return yaw, pitch, roll
+    return normal, yaw, pitch, roll
 
 def build_xml_frames_with_frame_index(all_angles):
     root = ET.Element("sequence")
@@ -167,8 +187,14 @@ def build_xml_frames_with_frame_index(all_angles):
     return ET.ElementTree(root)
 
 
+
 def main():
-    cap, video_id = load_video()
+    # Windows path
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'      # only left hand detected
+    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'      # three times
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'      # stable hand shape
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00626.mp4'
+    cap, video_id = load_video(file_path)
 
     # Get video frame rate
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -177,6 +203,9 @@ def main():
     # Initialize variables to store previous wrist positions
     prev_left_wrist = None
     prev_right_wrist = None
+
+    # store every frames
+    frames = []
 
     # Lists to store speed data
     left_speeds = []
@@ -214,19 +243,23 @@ def main():
         # hand detection
         hand_results = hands.process(rgb_frame)
 
+        # frame append
+        frames.append(rgb_frame)
+
         frame_angles = []
-        if hand_results.multi_hand_landmarks:
+        if hand_results.multi_hand_landmarks:   # if hand key points are detected
             print("+++++++++++++++++++++++++++++++++++++")
             print("len(hand_results.multi_hand_landmarks)", len(hand_results.multi_hand_landmarks))
             for hand_landmarks, handedness in zip(hand_results.multi_hand_landmarks, hand_results.multi_handedness):
                 # # in 2D-coordinate
                 # landmarks = [(lm.x * frame.shape[1], lm.y * frame.shape[0]) for lm in hand_landmarks.landmark]
                 # in 3D-coordinate
-                landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
-
+                landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                # print("landmarks", np.array(landmarks).flatten())
                 # wrist landmark
                 wrist = landmarks[0]
-                print(wrist)
+                print("wrist_coord", wrist)
+
                 # Determine if it's left or right hand
                 if handedness.classification[0].label == "Left":
                     left_wrist = landmarks[0]
@@ -251,9 +284,12 @@ def main():
 
                 frame_angles = []
 
+                normal_vector, yaw, pitch, roll = compute_hand_rotation(landmarks[0], landmarks[5], landmarks[17])
+                print(f"Yaw: {yaw}, Pitch: {pitch}, Roll: {roll}")
+
                 for triplet in joint_triplets:
                     a, b, c = [landmarks[i] for i in triplet]
-                    angle = calculate_angle(a, b, c)
+                    angle = calculate_angle(a, b, c, normal_vector)
                     frame_angles.append(convert_angles(angle))
 
                 print("frame_count:", frame_count)
@@ -321,10 +357,13 @@ def main():
 
         frame_count += 1
 
+
+
         # show result
         cv2.imshow(video_id, frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
 
     cap.release()
     cv2.destroyAllWindows()

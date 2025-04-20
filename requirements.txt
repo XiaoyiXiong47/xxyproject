@@ -7,3 +7,6 @@ scipy
 scikit-learn
 xml
 pandas
+hmmlearn
+sklearn
+pickle

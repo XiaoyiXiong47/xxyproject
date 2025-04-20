@@ -39,7 +39,7 @@ while cap.isOpened():
             bboxC = detection.location_data.relative_bounding_box
             ih, iw, _ = frame.shape
             bbox = int(bboxC.xmin * iw), int(bboxC.ymin * ih), \
-                   int(bboxC.width * iw), int(bboxC.height * ih)
+                   int(bboxC.width * iw), int(bboC.height * ih)
             cv2.rectangle(frame, bbox, (0, 255, 0), 2)
 
     # 显示结果
@@ -51,6 +51,6 @@ cap.release()
 cv2.destroyAllWindows()
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    print('PyCharm')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

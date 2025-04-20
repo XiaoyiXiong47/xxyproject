@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import json
 
 # === 设置 OpenPose 的路径 ===
-dir_path = '/Users/xiongxiaoyi/Documents/ProjectCode/openpose'  # 修改为你自己的路径
+# dir_path = '/Users/xiongxiaoyi/Documents/ProjectCode/openpose'  # 修改为你自己的路径
+dir_path = r'D:\project_codes'
 sys.path.append(os.path.join(dir_path, 'build/python'))
 from openpose import pyopenpose as op
 
@@ -30,7 +31,7 @@ opWrapper.configure(params)
 opWrapper.start()
 
 # === 视频读取 ===
-video_path = "/Users/xiongxiaoyi/Downloads/demo/04852.mp4"  # 修改为你的视频
+video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'   # 修改为你的视频
 cap = cv2.VideoCapture(video_path)
 frame_num = 0
 
