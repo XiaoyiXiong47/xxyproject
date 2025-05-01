@@ -5,6 +5,8 @@ Date: 04/03/2025
 
 import cv2
 import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 import numpy as np
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
@@ -185,6 +187,17 @@ def build_xml_frames_with_frame_index(all_angles):
         ET.SubElement(hand, "movement")
 
     return ET.ElementTree(root)
+
+
+
+def first_time():
+    """
+    Process the input video for the first time. Identify the type of the movement and determine key frames for
+    furture notation.
+    :return:
+    """
+    pass
+
 
 
 
