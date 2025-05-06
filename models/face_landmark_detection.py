@@ -215,7 +215,8 @@ def eyebrow_status(brow, upper_eye, lower_eye):
     return "Raised" if ratio > 1.8 else "Neutral"
 
 # 视频输入（可换成 0 用于摄像头）
-video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'  # <- 替换为你的视频路径
+# video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'
+video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
 cap = cv2.VideoCapture(video_path)
 
 with mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True) as face_mesh:
@@ -232,37 +233,37 @@ with mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_land
             for face_landmarks in result.multi_face_landmarks:
                 lm = face_landmarks.landmark
 
-                # 左眼（用户视角）
+                # left eye（from user's view）
                 l_inner, l_outer = lm[133], lm[33]
                 l_upper, l_lower = lm[159], lm[145]
                 l_eyebrow = lm[65]
 
-                # 右眼（用户视角）
+                # right eye（from user's view）
                 r_inner, r_outer = lm[362], lm[263]
                 r_upper, r_lower = lm[386], lm[374]
                 r_eyebrow = lm[295]
 
-                # 状态计算
+                # status
                 left_eye_state = eye_status(l_upper, l_lower, l_inner, l_outer)
                 right_eye_state = eye_status(r_upper, r_lower, r_inner, r_outer)
 
                 left_brow_state = eyebrow_status(l_eyebrow, l_upper, l_lower)
                 right_brow_state = eyebrow_status(r_eyebrow, r_upper, r_lower)
 
-                # 标注文本
+                # text annotation
                 cv2.putText(frame, f"L Eye: {left_eye_state}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
                 cv2.putText(frame, f"R Eye: {right_eye_state}", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
                 cv2.putText(frame, f"L Brow: {left_brow_state}", (30, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,0), 2)
                 cv2.putText(frame, f"R Brow: {right_brow_state}", (30, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,0), 2)
 
-                # 可视化关键点
+                # visualization
                 h, w, _ = frame.shape
                 for idx in [65, 295, 159, 145, 386, 374]:  # 眉毛、上/下眼睑点
                     x, y = int(lm[idx].x * w), int(lm[idx].y * h)
                     cv2.circle(frame, (x, y), 2, (0, 255, 255), -1)
 
         cv2.imshow("Face Expression Detection", frame)
-        if cv2.waitKey(200) & 0xFF == 27:
+        if cv2.waitKey(100) & 0xFF == 27:
             break
 
 cap.release()

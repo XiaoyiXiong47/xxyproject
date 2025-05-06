@@ -150,7 +150,7 @@ hand_keypoints = preprocess.process_frame(left, right)
 
 left_geatures = extract_features(left)
 
-# 假设 hand_keypoints 是你已有的 np.ndarray (n_frames, 42, 3)
+
 features = extract_features(convert_to_array_2d(hand_keypoints))
 sim_matrix = compute_similarity_matrix(features)
 plot_similarity_matrix(sim_matrix)
@@ -159,12 +159,12 @@ estimated_len = estimate_motion_length(hand_keypoints)
 min_frame_gap = int(estimated_len * 0.8)
 
 repeats = detect_repeats(sim_matrix, similarity_threshold=0.7, min_frame_gap=min_frame_gap)
-print("检测到重复段对:", repeats)
+print("Detected repeats:", repeats)
 
 repeat_count = estimate_repeat_count(repeats)
-print("估计重复次数:", repeat_count)
+print("Estimated repeat_count:", repeat_count)
 
 
-print("特征 shape:", features.shape)
-print("特征值范围：", np.min(features), "到", np.max(features))
-print("是否存在 NaN:", np.isnan(features).any())
+print("Features shape:", features.shape)
+print("Feature ranges：", np.min(features), "to", np.max(features))
+print("Exists NaN?:", np.isnan(features).any())

@@ -196,15 +196,10 @@ def detect_adaptive_significant_turning_points_3d(x, y, z, smooth_sigma=2, thres
 
 
 def remove_close_points_by_max_angle(indices, angles_all, min_gap=10):
-    """
-    对拐点去重：相近的点保留角度最大的那个
-    :param indices: 检测出的拐点索引数组
-    :param angles_all: 所有点的角度数组（用来比较大小）
-    :param min_gap: 最小允许间隔
-    """
     if len(indices) == 0:
-        return indices
-    indices = np.sort(indices)
+        return np.array([])
+
+    indices = np.array(sorted(indices))
     filtered = []
     group = [indices[0]]
 
@@ -212,14 +207,20 @@ def remove_close_points_by_max_angle(indices, angles_all, min_gap=10):
         if idx - group[-1] < min_gap:
             group.append(idx)
         else:
-            # 在group里找角度最大的
-            best_idx = group[np.argmax(angles_all[np.array(group)])]
+            # ⚠️ 先把 group 映射到 angles_all 的合法范围内
+            valid_group = [i for i in group if i < len(angles_all)]
+            if not valid_group:
+                group = [idx]
+                continue
+            best_idx = valid_group[np.argmax(angles_all[np.array(valid_group)])]
             filtered.append(best_idx)
             group = [idx]
-    # 最后一组
+
     if group:
-        best_idx = group[np.argmax(angles_all[np.array(group)])]
-        filtered.append(best_idx)
+        valid_group = [i for i in group if i < len(angles_all)]
+        if valid_group:
+            best_idx = valid_group[np.argmax(angles_all[np.array(valid_group)])]
+            filtered.append(best_idx)
 
     return np.array(filtered)
 
@@ -231,10 +232,11 @@ def detect_turning_points_auto_with_best(x, y, z, step_ratio=0.03, min_step=5, k
     points = np.vstack((x, y, z)).T
     n_points = len(points)
 
-    # 自动确定step
+    # automatically determine step
     step = max(int(n_points * step_ratio), min_step)
-    if step >= n_points // 2:
-        step = n_points // 4
+    # if step >= n_points // 2:
+    #     step = n_points // 4
+    step = 5
 
     vectors = points[step:] - points[:-step]
     norms = np.linalg.norm(vectors, axis=1, keepdims=True) + 1e-8
@@ -310,7 +312,8 @@ def process_hand_landmarks():
 
     keyframes = {'left': [], 'right': []}
 
-    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'
+    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00629.mp4'
     cap, video_id = load_video(file_path)
     mp_hands, mp_face, hands, face_detection = init_mediapipe()
     frame_index = 0
@@ -397,82 +400,89 @@ def process_hand_landmarks():
     keyframes_left = [k + left_start for k in keyframes_left]  # 恢复原始帧索引
     keyframes_right = [k + right_start for k in keyframes_right]  # 恢复原始帧索引
 
-    plot_keyframes('Left', left_wrist_trajectory, keyframes_left)
-    plot_keyframes('Right', right_wrist_trajectory, keyframes_right)
+    # plot_keyframes('Left', left_wrist_trajectory, keyframes_left)
+    # plot_keyframes('Right', right_wrist_trajectory, keyframes_right)
 
 
-    return keyframes_left, keyframes_right
+    # return keyframes_left, keyframes_right
+    # 从运动轨迹中检测关键帧之间的中间 turning points
+    midpoints_left = []
+    for i in range(len(keyframes_left) - 1):
+        seg_start = keyframes_left[i] - left_start
+        seg_end = keyframes_left[i + 1] - left_start
+        if seg_start < 0 or seg_end > len(motion_traj_left):
+            midpoints_left.append([])
+            continue
+        seg = motion_traj_left[seg_start:seg_end]
+        if len(seg) >= 10:
+            mid_idx, _, _, _ = detect_turning_points_auto_with_best(
+                seg[:, 0], seg[:, 1], seg[:, 2],
+                step_ratio=0.03, min_step=5, k=1.0, min_gap=10
+            )
+            midpoints_left.append([keyframes_left[i] + j for j in mid_idx])
+        else:
+            midpoints_left.append([])
+
+    midpoints_right = []
+    for i in range(len(keyframes_right) - 1):
+        seg_start = keyframes_right[i] - right_start
+        seg_end = keyframes_right[i + 1] - right_start
+        if seg_start < 0 or seg_end > len(motion_traj_right):
+            midpoints_right.append([])
+            continue
+        seg = motion_traj_right[seg_start:seg_end]
+        if len(seg) >= 10:
+            mid_idx, _, _, _ = detect_turning_points_auto_with_best(
+                seg[:, 0], seg[:, 1], seg[:, 2],
+                step_ratio=0.03, min_step=5, k=1.0, min_gap=10
+            )
+            midpoints_right.append([keyframes_right[i] + j for j in mid_idx])
+        else:
+            midpoints_right.append([])
+
+    return keyframes_left, keyframes_right, midpoints_left, midpoints_right
+
+k_l, k_r, midpoints_left, midpoints_right = process_hand_landmarks()
+print("k_l:", k_l)
+print("k_r:", k_r)
+print("midpoints_left:", midpoints_left)
+print("midpoints_right:", midpoints_right)
 
 
-# k_l, k_r = process_hand_landmarks()
-# print("k_l:", k_l)
-# print("k_r:", k_r)
+
 #
-
-# # 示例轨迹
-# t = np.linspace(0, 2*np.pi, 200)
-# x = np.cos(t) + 0.2*np.sin(3*t)
-# y = np.sin(t)
+# # t = np.linspace(0, 2*np.pi, 300)
+# # x = np.cos(t) + 0.1*np.sin(3*t)
+# # y = np.sin(t) + 0.1*np.sin(2*t)
+# # z = 0.5*np.sin(2*t)
 #
-# # 检测
-# significant_turning_points, curvature = detect_turning_points_2d(x, y, smooth_sigma=2, threshold_k=1.0)
+# t = np.linspace(0, 4*np.pi, 500)
+# x = np.cos(t) + 0.2*np.sin(5*t)
+# y = np.sin(t) + 0.2*np.cos(3*t)
+# z = t/np.pi + 0.1*np.sin(7*t)
 #
-# # 可视化
-# plt.figure(figsize=(8, 6))
-# plt.plot(x, y, 'k-', label='Trajectory')
-# plt.scatter(x[significant_turning_points], y[significant_turning_points], color='red', marker='x', s=200, label='Significant Turning Points')
-# plt.legend()
-# plt.title('Adaptive Significant Turning Points Detection')
-# plt.grid(True)
-# plt.show()
-
-
-# # 生成示例3D轨迹
-# t = np.linspace(0, 2*np.pi, 300)
-# x = np.cos(t) + 0.1*np.sin(3*t)
-# y = np.sin(t) + 0.1*np.sin(2*t)
-# z = 0.5*np.sin(2*t)
 #
-# # 检测
-# significant_turning_points, curvature = detect_adaptive_significant_turning_points_3d(x, y, z, smooth_sigma=2, threshold_k=1.0)
+# # detecting
+# turning_points_idx_filtered, angles, auto_step, auto_angle_threshold = detect_turning_points_auto_with_best(
+#     x, y, z,
+#     step_ratio=0.03,
+#     min_step=5,
+#     k=1.0,
+#     min_gap=10
+# )
 #
-# # 可视化3D轨迹和拐点
-# fig = plt.figure(figsize=(10, 8))
+# print(f"Automatic chosen step: {auto_step}")
+# print(f"Automatic chosen angle_threshold_deg: {auto_angle_threshold:.2f}°")
+# print(f"The number of turning points being kept: {len(turning_points_idx_filtered)}")
+#
+# # visualization
+# fig = plt.figure(figsize=(10,8))
 # ax = fig.add_subplot(111, projection='3d')
 # ax.plot(x, y, z, 'k-', label='Trajectory')
-# ax.scatter(x[significant_turning_points], y[significant_turning_points], z[significant_turning_points], color='red', marker='x', s=100, label='Significant Turning Points')
-# ax.set_title('Adaptive Significant Turning Points Detection in 3D')
+# ax.scatter(x[turning_points_idx_filtered], y[turning_points_idx_filtered], z[turning_points_idx_filtered], color='red', marker='x', s=100, label='Turning Points')
+# ax.set_title('Turning Points with Best Angle Selected in Dense Areas')
 # ax.legend()
 # plt.show()
-
-
-# 示例轨迹
-t = np.linspace(0, 2*np.pi, 300)
-x = np.cos(t) + 0.1*np.sin(3*t)
-y = np.sin(t) + 0.1*np.sin(2*t)
-z = 0.5*np.sin(2*t)
-
-# 检测
-turning_points_idx_filtered, angles, auto_step, auto_angle_threshold = detect_turning_points_auto_with_best(
-    x, y, z,
-    step_ratio=0.03,
-    min_step=5,
-    k=1.0,
-    min_gap=10
-)
-
-print(f"自动选择的step大小是: {auto_step}")
-print(f"自动选择的angle_threshold_deg是: {auto_angle_threshold:.2f}°")
-print(f"最终保留下的拐点数量: {len(turning_points_idx_filtered)}")
-
-# 可视化
-fig = plt.figure(figsize=(10,8))
-ax = fig.add_subplot(111, projection='3d')
-ax.plot(x, y, z, 'k-', label='Trajectory')
-ax.scatter(x[turning_points_idx_filtered], y[turning_points_idx_filtered], z[turning_points_idx_filtered], color='red', marker='x', s=100, label='Turning Points')
-ax.set_title('Turning Points with Best Angle Selected in Dense Areas')
-ax.legend()
-plt.show()
-
+#
 
 

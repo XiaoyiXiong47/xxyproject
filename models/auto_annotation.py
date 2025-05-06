@@ -162,6 +162,35 @@ def compute_hand_rotation(wrist, thumb, index):
 
     return normal, yaw, pitch, roll
 
+
+# --------------------------------------
+# Construct and write XML file
+
+def build_element(tag, content):
+    # 创建元素和属性
+    elem = ET.Element(tag)
+    for key, value in content.items():
+        if key.startswith("@"):
+            attr_name = key[1:]
+            elem.set(attr_name, value)
+        elif isinstance(value, dict):
+            child = build_element(key, value)
+            elem.append(child)
+        elif isinstance(value, list):
+            for item in value:
+                child = build_element(key, item)
+                elem.append(child)
+        else:
+            elem.text = str(value)
+    return elem
+
+def build_xml_from_dict(root_tag, data_dict):
+    root = ET.Element(root_tag)
+    for tag, content in data_dict.items():
+        root.append(build_element(tag, content))
+    return ET.ElementTree(root)
+
+
 def build_xml_frames_with_frame_index(all_angles):
     root = ET.Element("sequence")
 
@@ -181,7 +210,12 @@ def build_xml_frames_with_frame_index(all_angles):
             finger.set("j3", f"{j3:.1f}" if j3 != "" and not np.isnan(j3) else "")
 
         # keep structure
-        ET.SubElement(hand, "orientation", xAngle="", yAngle="", zAngle="")
+        # ET.SubElement(hand, "orientation", xAngle="", yAngle="", zAngle="")
+        # 添加 orientation
+        orientation = ET.SubElement(hand, "orientation")
+        orientation.set("xAngle", f"{yaw:.1f}" if not np.isnan(yaw) else "")
+        orientation.set("yAngle", f"{pitch:.1f}" if not np.isnan(pitch) else "")
+        orientation.set("zAngle", f"{roll:.1f}" if not np.isnan(roll) else "")
         location = ET.SubElement(hand, "location")
         ET.SubElement(location, "loc", x="", y="", z="")
         ET.SubElement(hand, "movement")
@@ -204,9 +238,9 @@ def first_time():
 def main():
     # Windows path
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'      # only left hand detected
-    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'      # three times
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'      # three times
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'      # stable hand shape
-    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00626.mp4'
+    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
     cap, video_id = load_video(file_path)
 
     # Get video frame rate
@@ -219,6 +253,8 @@ def main():
 
     # store every frames
     frames = []
+    all_orientations = []
+    yaw, pitch, roll = 0, 0, 0
 
     # Lists to store speed data
     left_speeds = []
@@ -299,6 +335,11 @@ def main():
 
                 normal_vector, yaw, pitch, roll = compute_hand_rotation(landmarks[0], landmarks[5], landmarks[17])
                 print(f"Yaw: {yaw}, Pitch: {pitch}, Roll: {roll}")
+                all_angles.append(frame_angles)
+
+
+                frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+
 
                 for triplet in joint_triplets:
                     a, b, c = [landmarks[i] for i in triplet]
@@ -312,40 +353,7 @@ def main():
                     print(f"f{num_finger}_j1: {frame_angles[num_finger*3 + 0]:.2f}, j2: {frame_angles[num_finger*3 + 1]:.2f}, j3: {frame_angles[num_finger*3 + 2]:.2f}")
                     num_finger += 1
 
-                all_angles.append(frame_angles)
 
-
-                # # calculate bending angle for each finger
-                # thumb_angles = []
-                # index_angles = []
-                # middle_angles = []
-                # ring_angles = []
-                # pinky_angles = []
-                # thumb_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[1], landmarks[2])))
-                # thumb_angles.append(convert_angles(calculate_angle(landmarks[1], landmarks[2], landmarks[3])))
-                # thumb_angles.append(convert_angles(calculate_angle(landmarks[2], landmarks[3], landmarks[4])))
-                #
-                # index_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[5], landmarks[6])))
-                # index_angles.append(convert_angles(calculate_angle(landmarks[5], landmarks[6], landmarks[7])))
-                # index_angles.append(convert_angles(calculate_angle(landmarks[6], landmarks[7], landmarks[8])))
-                #
-                # middle_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[9], landmarks[10])))
-                # middle_angles.append(convert_angles(calculate_angle(landmarks[9], landmarks[10], landmarks[11])))
-                # middle_angles.append(convert_angles(calculate_angle(landmarks[10], landmarks[11], landmarks[12])))
-                #
-                # ring_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[13], landmarks[14])))
-                # ring_angles.append(convert_angles(calculate_angle(landmarks[13], landmarks[14], landmarks[15])))
-                # ring_angles.append(convert_angles(calculate_angle(landmarks[14], landmarks[15], landmarks[16])))
-                #
-                # pinky_angles.append(convert_angles(calculate_angle(landmarks[0], landmarks[17], landmarks[18])))
-                # pinky_angles.append(convert_angles(calculate_angle(landmarks[17], landmarks[18], landmarks[19])))
-                # pinky_angles.append(convert_angles(calculate_angle(landmarks[18], landmarks[19], landmarks[20])))
-                #
-                # print(f"f0_j1: {thumb_angles[0]:.2f}, j2: {thumb_angles[1]:.2f}, 3: {thumb_angles[2]:.2f}")
-                # print(f"f1_j1: {index_angles[0]:.2f}, j2: {index_angles[1]:.2f}, j3: {index_angles[2]:.2f}")
-                # print(f"f2_j1: {middle_angles[0]:.2f}, j2: {middle_angles[1]:.2f}, j3: {middle_angles[2]:.2f}")
-                # print(f"f3_j1: {ring_angles[0]:.2f}, j2: {ring_angles[1]:.2f}, j3: {ring_angles[2]:.2f}")
-                # print(f"f4_j1: {pinky_angles[0]:.2f}, j2: {pinky_angles[1]:.2f}, j3: {pinky_angles[2]:.2f}")
 
 
                 # draw hand landmarks
@@ -371,10 +379,9 @@ def main():
         frame_count += 1
 
 
-
         # show result
         cv2.imshow(video_id, frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(100) & 0xFF == ord('q'):
             break
 
 
