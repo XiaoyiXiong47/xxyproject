@@ -313,7 +313,8 @@ def process_hand_landmarks():
     keyframes = {'left': [], 'right': []}
 
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'
-    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00629.mp4'
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00629.mp4'
+    file_path = '/Users/xiongxiaoyi/Downloads/demo/04851.mp4'
     cap, video_id = load_video(file_path)
     mp_hands, mp_face, hands, face_detection = init_mediapipe()
     frame_index = 0

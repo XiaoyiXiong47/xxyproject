@@ -3,6 +3,7 @@ Created by: Xiaoyi Xiong
 Date: 04/03/2025
 """
 
+import argparse
 import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
@@ -12,10 +13,17 @@ import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from scipy.spatial.transform import Rotation as R
 from sklearn.preprocessing import StandardScaler
-import pandas as pd
+#import pandas as pd
 import xml.dom.minidom as minidom
 
-from utils import preprocess
+#from utils import preprocess
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="参数解析函数示例")
+    parser.add_argument('--data_path', type=str, required=True,
+                        help='The path to the dataset that is being annoted')
+    parser.add_argument('--dataset', type=str, required=True, help='The name of the dataset.')
+    return parser.parse_args()
 
 def diff_in_z(v1, v2):
     z_diff = abs(v1[2] - v2[2])
@@ -236,11 +244,17 @@ def first_time():
 
 
 def main():
+    args = parse_args()
+    file_path = args.data_path
+    dataset = args.dataset
     # Windows path
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'      # only left hand detected
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'      # three times
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'      # stable hand shape
-    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
+    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
+
+    # MacOS path
+    # file_path = '/Users/xiongxiaoyi/Downloads/demo/04854.mp4'
     cap, video_id = load_video(file_path)
 
     # Get video frame rate
@@ -389,11 +403,6 @@ def main():
     cv2.destroyAllWindows()
 
 
-    #
-    # df = pd.DataFrame(all_angles, columns=joint_names)
-    # df.to_csv("hand_joint_angles.csv", index=False)
-    # print("Hand joint angles saved at hand_joint_angles.csv")
-
     xml_tree = build_xml_frames_with_frame_index(all_angles)
     save_pretty_xml(xml_tree, "hand_angles.xml")
 
@@ -409,4 +418,6 @@ def main():
     plt.legend()
     plt.show()
 
-main()
+
+if __name__ == '__main__':
+    main()
