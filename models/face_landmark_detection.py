@@ -192,8 +192,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-mp_face_mesh = mp.solutions.face_mesh
-drawing_spec = mp.solutions.drawing_utils.DrawingSpec(thickness=1, circle_radius=1)
+
 
 # 距离函数
 def euclidean(p1, p2):
@@ -214,57 +213,71 @@ def eyebrow_status(brow, upper_eye, lower_eye):
     ratio = euclidean(brow, upper_eye) / euclidean(upper_eye, lower_eye)
     return "Raised" if ratio > 1.8 else "Neutral"
 
-# 视频输入（可换成 0 用于摄像头）
-# video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'
-video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
-cap = cv2.VideoCapture(video_path)
 
-with mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True) as face_mesh:
-    while cap.isOpened():
-        success, frame = cap.read()
-        if not success:
-            break
 
-        frame = cv2.resize(frame, (640, 480))
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        result = face_mesh.process(rgb)
 
-        if result.multi_face_landmarks:
-            for face_landmarks in result.multi_face_landmarks:
-                lm = face_landmarks.landmark
 
-                # left eye（from user's view）
-                l_inner, l_outer = lm[133], lm[33]
-                l_upper, l_lower = lm[159], lm[145]
-                l_eyebrow = lm[65]
+def main():
+    mp_face_mesh = mp.solutions.face_mesh
+    drawing_spec = mp.solutions.drawing_utils.DrawingSpec(thickness=1, circle_radius=1)
+    # video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00625.mp4'
+    video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
+    cap = cv2.VideoCapture(video_path)
 
-                # right eye（from user's view）
-                r_inner, r_outer = lm[362], lm[263]
-                r_upper, r_lower = lm[386], lm[374]
-                r_eyebrow = lm[295]
+    with mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True) as face_mesh:
+        while cap.isOpened():
+            success, frame = cap.read()
+            if not success:
+                break
 
-                # status
-                left_eye_state = eye_status(l_upper, l_lower, l_inner, l_outer)
-                right_eye_state = eye_status(r_upper, r_lower, r_inner, r_outer)
+            frame = cv2.resize(frame, (640, 480))
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            result = face_mesh.process(rgb)
 
-                left_brow_state = eyebrow_status(l_eyebrow, l_upper, l_lower)
-                right_brow_state = eyebrow_status(r_eyebrow, r_upper, r_lower)
+            if result.multi_face_landmarks:
+                for face_landmarks in result.multi_face_landmarks:
+                    lm = face_landmarks.landmark
 
-                # text annotation
-                cv2.putText(frame, f"L Eye: {left_eye_state}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
-                cv2.putText(frame, f"R Eye: {right_eye_state}", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
-                cv2.putText(frame, f"L Brow: {left_brow_state}", (30, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,0), 2)
-                cv2.putText(frame, f"R Brow: {right_brow_state}", (30, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,0), 2)
+                    # left eye（from user's view）
+                    l_inner, l_outer = lm[133], lm[33]
+                    l_upper, l_lower = lm[159], lm[145]
+                    l_eyebrow = lm[65]
 
-                # visualization
-                h, w, _ = frame.shape
-                for idx in [65, 295, 159, 145, 386, 374]:  # 眉毛、上/下眼睑点
-                    x, y = int(lm[idx].x * w), int(lm[idx].y * h)
-                    cv2.circle(frame, (x, y), 2, (0, 255, 255), -1)
+                    # right eye（from user's view）
+                    r_inner, r_outer = lm[362], lm[263]
+                    r_upper, r_lower = lm[386], lm[374]
+                    r_eyebrow = lm[295]
 
-        cv2.imshow("Face Expression Detection", frame)
-        if cv2.waitKey(100) & 0xFF == 27:
-            break
+                    # status
+                    left_eye_state = eye_status(l_upper, l_lower, l_inner, l_outer)
+                    right_eye_state = eye_status(r_upper, r_lower, r_inner, r_outer)
 
-cap.release()
-cv2.destroyAllWindows()
+                    left_brow_state = eyebrow_status(l_eyebrow, l_upper, l_lower)
+                    right_brow_state = eyebrow_status(r_eyebrow, r_upper, r_lower)
+
+                    # text annotation
+                    cv2.putText(frame, f"L Eye: {left_eye_state}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0),
+                                2)
+                    cv2.putText(frame, f"R Eye: {right_eye_state}", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                                (0, 255, 0), 2)
+                    cv2.putText(frame, f"L Brow: {left_brow_state}", (30, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                                (255, 0, 0), 2)
+                    cv2.putText(frame, f"R Brow: {right_brow_state}", (30, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                                (255, 0, 0), 2)
+
+                    # visualization
+                    h, w, _ = frame.shape
+                    for idx in [65, 295, 159, 145, 386, 374]:  # 眉毛、上/下眼睑点
+                        x, y = int(lm[idx].x * w), int(lm[idx].y * h)
+                        cv2.circle(frame, (x, y), 2, (0, 255, 255), -1)
+
+            cv2.imshow("Face Expression Detection", frame)
+            if cv2.waitKey(100) & 0xFF == 27:
+                break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()

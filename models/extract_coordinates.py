@@ -14,6 +14,8 @@ from scipy.spatial.transform import Rotation as R
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import xml.dom.minidom as minidom
+import keyframes_detection_and_notation
+import hand_location
 
 def init_mediapipe():
     """
@@ -46,7 +48,7 @@ def load_video(file_path):
 
 def get_coordinates(file_path):
     """"""
-    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
+
     cap, video_id = load_video(file_path)
 
     # Get video frame rate
@@ -60,6 +62,9 @@ def get_coordinates(file_path):
     left_hand = []
     right_hand = []
 
+    left_wrist = []
+    right_wrist = []
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -68,58 +73,99 @@ def get_coordinates(file_path):
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # hand detection
         hand_results = hands.process(rgb_frame)
+        multi_hands = hand_results.multi_hand_landmarks
         # frame append
         frames.append(rgb_frame)
-
-        # hand landmarks detection
-        if hand_results.multi_hand_landmarks:  # if hand key points are detected
-            if len(hand_results.multi_hand_landmarks) == 2:
-                # both hands are detected
-                for hand_landmarks, handedness in zip(hand_results.multi_hand_landmarks, hand_results.multi_handedness):
+        if multi_hands:  # if hand key points are detected
+            if len(multi_hands) == 2:
+                for hand_landmarks, handedness in zip(multi_hands, hand_results.multi_handedness):
                     landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                    wrist = landmarks[0]
                     if handedness.classification[0].label == "Left":
+                        left_wrist.append(wrist)
                         left_hand.append(landmarks)
-                    else:  # right hand
-                        right_hand = landmarks
-            elif len(hand_results.multi_hand_landmarks) == 1:
-                for hand_landmarks, handedness in zip(hand_results.multi_hand_landmarks, hand_results.multi_handedness):
-                    landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
-                    if handedness.classification[0].label == "Left":
-                        left_hand.append(landmarks)
-                        right_hand.append(np.full(21, np.nan))
-                    else:  # right hand
-                        right_hand = landmarks
-                        left_hand.append(np.full(21, np.nan))
-
-                # draw hand landmarks
-                mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, hands.HAND_CONNECTIONS)
+                        # current_left_right["left"] = landmarks
+                    elif handedness.classification[0].label == "Right":
+                        right_wrist.append(wrist)
+                        right_hand.append(landmarks)
+                        # current_left_right["right"] = landmarks
+                    # draw hand landmarks
+                    mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks)
+            elif len(multi_hands) == 1:
+                hand_landmarks = multi_hands[0]
+                handedness = hand_results.multi_handedness[0]
+                landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                wrist = landmarks[0]
+                if handedness.classification[0].label == "Left":
+                    left_wrist.append(wrist)
+                    left_hand.append(landmarks)
+                    right_wrist.append([np.nan, np.nan, np.nan])
+                    right_hand.append(np.full(21, np.nan))
+                elif handedness.classification[0].label == "Right":
+                    right_wrist.append(wrist)
+                    right_hand.append(landmarks)
+                    left_wrist.append([np.nan, np.nan, np.nan])
+                    left_hand.append(np.full(21, np.nan))
+                # # draw hand landmarks
+                # mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, hands.HAND_CONNECTIONS)
         else:
-            # no hand detected
+        #     hand not detected at current frame, insert with [np.nan, np.nan, np.nan]
+            left_wrist.append([np.nan, np.nan, np.nan])
             left_hand.append(np.full(21, np.nan))
+            right_wrist.append([np.nan, np.nan, np.nan])
             right_hand.append(np.full(21, np.nan))
 
+        # keyframes_left, keyframes_right, midpoints_left, midpoints_right = keyframes_detection_and_notation.process_hand_landmarks(left_wrist, right_wrist)
+
+
+
         # face detection
-        face_results = face_mesh.process(rgb_frame)
-        if face_results.detections:
-            for detection in face_results.detections:
-                # bounding box
-                bboxC = detection.location_data.relative_bounding_box
-                ih, iw, _ = frame.shape
-                bbox = int(bboxC.xmin * iw), int(bboxC.ymin * ih), \
-                       int(bboxC.width * iw), int(bboxC.height * ih)
-                cv2.rectangle(frame, bbox, (0, 255, 0), 2)
+        face_result = face_mesh.process(rgb_frame)
+        if face_result.multi_face_landmarks:
+            for face_landmarks in face_result.multi_face_landmarks:
+                lm = face_landmarks.landmark
+
+
+
+
+        # pose detection
+
+        left_hand_location_by_frame = []
+        right_hand_location_by_frame = []
+        pose_results = pose.process(rgb_frame)
+        pose_landmarks = pose_results.pose_landmarks.landmark if pose_results.pose_landmarks else None
+
+        if pose_landmarks and multi_hands:
+            for idx, hand_landmarks in enumerate(multi_hands):
+                hand_pos = hand_location.get_hand_position(15 if idx == 0 else 16, pose_landmarks, hand_landmarks.landmark)
+                label = "Left" if idx == 0 else "Right"
+                if hand_pos is not None:
+                    if label == "Left":
+                        left_hand_location_by_frame.append(hand_pos)
+                    else:
+                        right_hand_location_by_frame.append(hand_pos)
+        else:
+            left_hand_location_by_frame.append(-1)
+            right_hand_location_by_frame.append(-1)
+
 
         frame_count += 1
 
-        # show result
-        cv2.imshow(video_id, frame)
-        if cv2.waitKey(100) & 0xFF == ord('q'):
-            break
+        # # show result
+        # cv2.imshow(video_id, frame)
+        # if cv2.waitKey(100) & 0xFF == ord('q'):
+        #     break
 
     cap.release()
     cv2.destroyAllWindows()
 
-    return left_hand, right_hand, shoulders, facial
+    return left_hand, right_hand, left_wrist, right_wrist
 
 
+def main():
+    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'
+    left_hand, right_hand, keyframes_left, keyframes_right, midpoints_left, midpoints_right = get_coordinates(file_path)
+    return left_hand, right_hand, keyframes_left, keyframes_right, midpoints_left, midpoints_right
 
+if __name__ == '__main__':
+    main()

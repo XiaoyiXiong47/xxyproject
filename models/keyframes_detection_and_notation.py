@@ -10,6 +10,7 @@ from scipy.ndimage import gaussian_filter1d
 import cv2
 import mediapipe as mp
 from mpl_toolkits.mplot3d import Axes3D
+import extract_coordinates
 
 def load_video(file_path):
     """
@@ -21,15 +22,6 @@ def load_video(file_path):
     video_id = file_path.split('\\')[-1]
     cap = cv2.VideoCapture(file_path)
     return cap, video_id
-
-
-def init_mediapipe():
-    # Initialise MediaPipe Hands and Face Detection
-    mp_hands = mp.solutions.hands
-    mp_face = mp.solutions.face_detection
-    hands = mp_hands.Hands()
-    face_detection = mp_face.FaceDetection()
-    return mp_hands, mp_face, hands, face_detection
 
 
 # -------------------------------
@@ -49,12 +41,16 @@ def interpolate_nan_rows(data):
     """
     for dim in range(data.shape[1]):
         valid = ~np.isnan(data[:, dim])
+        if np.sum(valid) == 0:
+            # 如果整列都是 NaN，跳过插值
+            continue
         data[:, dim] = np.interp(
             x=np.arange(len(data)),
             xp=np.flatnonzero(valid),
             fp=data[valid, dim]
         )
     return data
+
 
 
 
@@ -77,8 +73,17 @@ def smooth_signal(signal, sigma=2):
 # Step 3. 识别运动段（去掉静止）
 # -------------------------------
 
+# def get_movement_segment(velocity, threshold=0.01):
+#     is_moving = velocity > threshold
+#     start = np.argmax(is_moving)
+#     end = len(is_moving) - np.argmax(is_moving[::-1])
+#     return start, end
 def get_movement_segment(velocity, threshold=0.01):
+    if velocity is None or len(velocity) == 0:
+        return 0, 0  # 返回空段
     is_moving = velocity > threshold
+    if not np.any(is_moving):
+        return 0, 0
     start = np.argmax(is_moving)
     end = len(is_moving) - np.argmax(is_moving[::-1])
     return start, end
@@ -103,6 +108,8 @@ def find_direction_changes(trajectory, threshold_deg=45):
 
 
 def find_position_extremes(trajectory):
+    if trajectory is None or len(trajectory) == 0:
+        return []  # 或 return None，具体取决于后续处理方式
     x_ext = [np.argmax(trajectory[:, 0]), np.argmin(trajectory[:, 0])]
     y_ext = [np.argmax(trajectory[:, 1]), np.argmin(trajectory[:, 1])]
     z_ext = [np.argmax(trajectory[:, 2]), np.argmin(trajectory[:, 2])]
@@ -308,67 +315,13 @@ def plot_keyframes(leftorright, trajectory, keyframes):
 # 主函数封装
 # -------------------------------
 
-def process_hand_landmarks():
+def process_hand_landmarks(left_wrist, right_wrist):
 
     keyframes = {'left': [], 'right': []}
 
-    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'
-    # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00629.mp4'
-    file_path = '/Users/xiongxiaoyi/Downloads/demo/04851.mp4'
-    cap, video_id = load_video(file_path)
-    mp_hands, mp_face, hands, face_detection = init_mediapipe()
-    frame_index = 0
-    frames = []
-    left_wrist = []
-    right_wrist = []
-    # left = []
-    # right = []
-    # all_hand_frames = []
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        # convert to RGB
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        # hand detection
-        hand_results = hands.process(rgb_frame)
-
-        # current_left_right = {}
-        # current_left_right["left"] = np.full((21, 3), np.nan)
-        # current_left_right["right"] = np.full((21, 3), np.nan)
-        # frame append
-        frames.append(rgb_frame)
-        if hand_results.multi_hand_landmarks:  # if hand key points are detected
-            for hand_landmarks, handedness in zip(hand_results.multi_hand_landmarks, hand_results.multi_handedness):
-                landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
-                wrist = landmarks[0]
-                if handedness.classification[0].label == "Left":
-                    left_wrist.append(wrist)
-                    # current_left_right["left"] = landmarks
-                elif handedness.classification[0].label == "Right":
-                    right_wrist.append(wrist)
-                    # current_left_right["right"] = landmarks
-        # else:
-        #     hand not detected at current frame, insert with [np.nan, np.nan, np.nan]
-            left_wrist.append([np.nan, np.nan, np.nan])
-            right_wrist.append([np.nan, np.nan, np.nan])
-        #     # left.append(np.full((21, 3), np.nan))
-        #     # right.append(np.full((21, 3), np.nan))
-        #     current_left_right["left"] = np.full((21, 3), np.nan)
-        #     current_left_right["right"] = np.full((21, 3), np.nan)
-
-            # show result
-        cv2.imshow(video_id, frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-        # all_hand_frames.append(current_left_right)
-
-    cap.release()
-    cv2.destroyAllWindows()
-
+    left_wrist_array = np.array(left_wrist)
+    if left_wrist_array.ndim != 2 or left_wrist_array.shape[1] != 3:
+        raise ValueError(f"left_wrist data shape invalid: {left_wrist_array.shape}")
 
     left_wrist_trajectory = interpolate_nan_rows(np.array(left_wrist))
     right_wrist_trajectory = interpolate_nan_rows(np.array(right_wrist))
@@ -443,11 +396,82 @@ def process_hand_landmarks():
 
     return keyframes_left, keyframes_right, midpoints_left, midpoints_right
 
-k_l, k_r, midpoints_left, midpoints_right = process_hand_landmarks()
-print("k_l:", k_l)
-print("k_r:", k_r)
-print("midpoints_left:", midpoints_left)
-print("midpoints_right:", midpoints_right)
+def main():
+    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'
+    cap, video_id = load_video(file_path)
+
+    # Get video frame rate
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    time_per_frame = 1 / fps
+
+    frame_count = 0
+    frames = []
+    pose, hands, face_mesh = extract_coordinates.init_mediapipe()
+
+    left_hand = []
+    right_hand = []
+
+    left_wrist = []
+    right_wrist = []
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        # convert to RGB
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # hand detection
+        hand_results = hands.process(rgb_frame)
+        multi_hands = hand_results.multi_hand_landmarks
+        # frame append
+        frames.append(rgb_frame)
+        if multi_hands:  # if hand key points are detected
+            if len(multi_hands) == 2:
+                for hand_landmarks, handedness in zip(multi_hands, hand_results.multi_handedness):
+                    landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                    wrist = landmarks[0]
+                    if handedness.classification[0].label == "Left":
+                        left_wrist.append(wrist)
+                        left_hand.append(landmarks)
+                        # current_left_right["left"] = landmarks
+                    elif handedness.classification[0].label == "Right":
+                        right_wrist.append(wrist)
+                        right_hand.append(landmarks)
+                        # current_left_right["right"] = landmarks
+
+            elif len(multi_hands) == 1:
+                hand_landmarks = multi_hands[0]
+                handedness = hand_results.multi_handedness[0]
+                landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                wrist = landmarks[0]
+                if handedness.classification[0].label == "Left":
+                    left_wrist.append(wrist)
+                    left_hand.append(landmarks)
+                    right_wrist.append([np.nan, np.nan, np.nan])
+                    right_hand.append(np.full(21, np.nan))
+                elif handedness.classification[0].label == "Right":
+                    right_wrist.append(wrist)
+                    right_hand.append(landmarks)
+                    left_wrist.append([np.nan, np.nan, np.nan])
+                    left_hand.append(np.full(21, np.nan))
+
+        else:
+        #     hand not detected at current frame, insert with [np.nan, np.nan, np.nan]
+            left_wrist.append([np.nan, np.nan, np.nan])
+            left_hand.append(np.full(21, np.nan))
+            right_wrist.append([np.nan, np.nan, np.nan])
+            right_hand.append(np.full(21, np.nan))
+    k_l, k_r, midpoints_left, midpoints_right = process_hand_landmarks(left_wrist, right_wrist)
+    print("k_l:", k_l)
+    print("k_r:", k_r)
+    print("midpoints_left:", midpoints_left)
+    print("midpoints_right:", midpoints_right)
+
+
+if __name__ == '__main__':
+    main()
+
+
 
 
 

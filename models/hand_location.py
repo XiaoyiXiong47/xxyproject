@@ -50,7 +50,10 @@ def get_hand_position(hand_index, pose_landmarks, hand_landmarks):
 
 
 # 主函数处理视频
-def process_video(video_path):
+def main():
+    file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
+    video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
+
     cap = cv2.VideoCapture(video_path)
     frame_count = 0
 
@@ -84,7 +87,7 @@ def process_video(video_path):
     cap.release()
     cv2.destroyAllWindows()
 
-# 示例用法
-file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
-video_path = r'D:\project_codes\WLASL\start_kit\raw_videos\00632.mp4'
-process_video(video_path)
+
+if __name__ == '__main__':
+    main()
+

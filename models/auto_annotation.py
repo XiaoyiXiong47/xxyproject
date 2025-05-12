@@ -12,6 +12,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 from scipy.spatial.transform import Rotation as R
+import extract_coordinates
+import keyframes_detection_and_notation
+import hand_rotation
+import hand_location
+import construct_xml
+
 from sklearn.preprocessing import StandardScaler
 #import pandas as pd
 import xml.dom.minidom as minidom
@@ -32,16 +38,7 @@ def diff_in_z(v1, v2):
         return True
     return False
 
-def save_pretty_xml(xml_tree, filename="hand_angles.xml"):
-    xml_str = ET.tostring(xml_tree.getroot(), encoding="utf-8")
 
-    dom = minidom.parseString(xml_str)
-    pretty_xml_as_string = dom.toprettyxml(indent="  ")
-
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(pretty_xml_as_string)
-
-    print(f"{filename} saved!")
 
 
 def compute_hand_rotation(wrist, index, picky):
@@ -119,35 +116,6 @@ def load_video(file_path):
     return cap, video_id
 
 
-def write_xml(file, element):
-    """Initialise the XML file"""
-    # create root element
-    root = ET.Element("doc")
-
-    # create sem
-    sem = ET.SubElement(root, "sem")
-    sem.attrib["type"] = element["type"]
-    # ...
-
-    # Create the tree and write to a file
-    tree = ET.ElementTree(root)
-    tree.write(file)
-
-
-def append_element_to_xml(file, element):
-    """ Append element into XML file"""
-    # Load the existing XML file
-    tree = ET.parse(file)
-    root = tree.getroot()
-
-    # Append new data
-    new_sem = ET.SubElement(root, "sem")
-    new_sem.attrib["type"] = element["type"]
-    # ...
-
-    # Save the changes back to the file
-    tree.write(file)
-
 
 def compute_hand_rotation(wrist, thumb, index):
     # calculate two vectors
@@ -170,6 +138,43 @@ def compute_hand_rotation(wrist, thumb, index):
 
     return normal, yaw, pitch, roll
 
+
+
+def review_keyframes(video_path, keyframes):
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print("Error: Could not open video.")
+        return
+
+    frame_idx = 0
+    keyframe_set = set(keyframes)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        if frame_idx in keyframe_set:
+            # 显示帧号
+            cv2.putText(frame, f"Keyframe: {frame_idx}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (0, 0, 255), 2, cv2.LINE_AA)
+
+            # 显示帧画面
+            cv2.imshow("Keyframe Viewer", frame)
+
+            # 等待按键，按任意键继续，按'q'退出
+            key = cv2.waitKey(0)
+            if key == ord('q'):
+                print("User quit.")
+                break
+        else:
+            # 非关键帧跳过显示
+            pass
+
+        frame_idx += 1
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 # --------------------------------------
 # Construct and write XML file
@@ -230,6 +235,23 @@ def build_xml_frames_with_frame_index(all_angles):
 
     return ET.ElementTree(root)
 
+def print_keyframe_angles(hand_name, keyframes, all_angles):
+    print(f"\n{hand_name} hand keyframe angles:")
+    for idx in keyframes:
+        if idx < len(all_angles):
+            angles = all_angles[idx]
+            if all(np.isnan(angles)):  # 全是 nan，表示该帧未检测到该手
+                print(f"[Frame {idx}] No hand detected.")
+                continue
+            print(f"[Frame {idx}]")
+            for f in range(5):
+                j1 = angles[f * 3 + 0]
+                j2 = angles[f * 3 + 1]
+                j3 = angles[f * 3 + 2]
+                j1_str = f"{j1:.1f}" if not np.isnan(j1) else "NaN"
+                j2_str = f"{j2:.1f}" if not np.isnan(j2) else "NaN"
+                j3_str = f"{j3:.1f}" if not np.isnan(j3) else "NaN"
+                print(f"  f{f}: j1={j1_str}, j2={j2_str}, j3={j3_str}")
 
 
 def first_time():
@@ -238,7 +260,29 @@ def first_time():
     furture notation.
     :return:
     """
-    pass
+    args = parse_args()
+    file_path = args.data_path
+    dataset = args.dataset
+
+    left_hand, right_hand, left_wrist, right_wrist = extract_coordinates.get_coordinates(file_path)
+    print("Coordinates successfully detected!")
+    # print("left_hand:", left_hand)
+    # print("right_hand:", right_hand)
+    # print("left_wrist:", left_wrist)
+    # print("right_wrist:", right_wrist)
+
+
+    keyframes_left, keyframes_right, midpoints_left, midpoints_right = keyframes_detection_and_notation.process_hand_landmarks(
+        left_wrist, right_wrist)
+
+    print("keyframes_left:", keyframes_left)
+    print("keyframes_right:", keyframes_right)
+    print("midpoints_left:", midpoints_left)
+    print("midpoints_right:", midpoints_right)
+
+    review_keyframes(file_path, keyframes_left)
+
+
 
 
 
@@ -275,6 +319,8 @@ def main():
     right_speeds = []
     frame_numbers = []
 
+    left_wrist = []
+    right_wirst = []
     frame_count = 0
 
     mp_hands, mp_face, hands, face_detection = init_mediapipe()
@@ -325,25 +371,25 @@ def main():
 
                 # Determine if it's left or right hand
                 if handedness.classification[0].label == "Left":
-                    left_wrist = landmarks[0]
+                    left_w = landmarks[0]
                     print("Left hand")
                     if prev_left_wrist is not None:
                         # Calculate Euclidean distance between current and previous wrist position
-                        distance = np.linalg.norm(np.array(left_wrist) - np.array(prev_left_wrist))
+                        distance = np.linalg.norm(np.array(left_w) - np.array(prev_left_wrist))
                         speed = distance / time_per_frame
                         left_speeds.append(speed)
                         frame_numbers.append(frame_count)  # Append frame number only when speed is calculated
-                    prev_left_wrist = left_wrist
+                    prev_left_wrist = left_w
                 else: # right hand
-                    right_wrist = landmarks[0]
+                    right_w = landmarks[0]
                     print("Right hand")
                     if prev_right_wrist is not None:
                         # Calculate Euclidean distance between current and previous wrist position
-                        distance = np.linalg.norm(np.array(right_wrist) - np.array(prev_right_wrist))
+                        distance = np.linalg.norm(np.array(right_w) - np.array(prev_right_wrist))
                         speed = distance / time_per_frame
                         right_speeds.append(speed)
                         frame_numbers.append(frame_count)
-                    prev_right_wrist = right_wrist
+                    prev_right_wrist = right_w
 
                 frame_angles = []
 
@@ -366,8 +412,6 @@ def main():
                 while num_finger <= 4:
                     print(f"f{num_finger}_j1: {frame_angles[num_finger*3 + 0]:.2f}, j2: {frame_angles[num_finger*3 + 1]:.2f}, j3: {frame_angles[num_finger*3 + 2]:.2f}")
                     num_finger += 1
-
-
 
 
                 # draw hand landmarks
@@ -402,9 +446,18 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
+    keyframes_left, keyframes_right, midpoints_left, midpoints_right = keyframes_detection_and_notation.process_hand_landmarks(
+        left_wrist, right_wrist
+    )
+
+    print("\n=== Detected Keyframes ===")
+    print("Left hand keyframes:", keyframes_left)
+    print("Right hand keyframes:", keyframes_right)
+    print("Left hand midpoints between keyframes:", midpoints_left)
+    print("Right hand midpoints between keyframes:", midpoints_right)
 
     xml_tree = build_xml_frames_with_frame_index(all_angles)
-    save_pretty_xml(xml_tree, "hand_angles.xml")
+    construct_xml.save_pretty_xml(xml_tree, "hand_angles.xml")
 
     print(frame_numbers)
 
@@ -420,4 +473,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    first_time()
