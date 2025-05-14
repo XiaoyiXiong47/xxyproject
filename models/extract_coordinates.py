@@ -53,7 +53,7 @@ def get_coordinates(file_path):
 
     # Get video frame rate
     fps = cap.get(cv2.CAP_PROP_FPS)
-    time_per_frame = 1 / fps
+    # time_per_frame = 1 / fps
 
     frame_count = 0
     frames = []
@@ -64,6 +64,9 @@ def get_coordinates(file_path):
 
     left_wrist = []
     right_wrist = []
+
+    left_hand_location_by_frame = []
+    right_hand_location_by_frame = []
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -130,8 +133,7 @@ def get_coordinates(file_path):
 
         # pose detection
 
-        left_hand_location_by_frame = []
-        right_hand_location_by_frame = []
+
         pose_results = pose.process(rgb_frame)
         pose_landmarks = pose_results.pose_landmarks.landmark if pose_results.pose_landmarks else None
 
@@ -159,7 +161,7 @@ def get_coordinates(file_path):
     cap.release()
     cv2.destroyAllWindows()
 
-    return left_hand, right_hand, left_wrist, right_wrist
+    return left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks
 
 
 def main():

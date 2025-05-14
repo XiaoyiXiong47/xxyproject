@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument('--data_path', type=str, required=True,
                         help='The path to the dataset that is being annoted')
     parser.add_argument('--dataset', type=str, required=True, help='The name of the dataset.')
+    parser.add_argument('--gloss', type=str, required=True, help='The gloss of the dataset, will be recognised later')
     return parser.parse_args()
 
 def diff_in_z(v1, v2):
@@ -51,7 +52,7 @@ def compute_hand_rotation(wrist, index, picky):
     # normalisation
     normal = normal / np.linalg.norm(normal)
 
-    # ratation matrix
+    # rotation matrix
     ref_vector = np.array([0, 0, 1])  # reference direction（Z-axis）
     rot_matrix = np.linalg.inv(R.align_vectors([normal], [ref_vector])[0].as_matrix())
 
@@ -115,29 +116,29 @@ def load_video(file_path):
     cap = cv2.VideoCapture(file_path)
     return cap, video_id
 
+def extract_finger_angles_all_frames(hand_landmarks_3d, joint_triplets, normal_vector=None):
+    """
+    提取每一帧的手指角度特征
+    :param hand_landmarks_3d: shape=(n_frames, 21, 3)
+    :param joint_triplets: List of (i, j, k)
+    :param normal_vector: 参考法向量（可选）
+    :return: angles_array, shape=(n_frames, len(joint_triplets))
+    """
+    n_frames = len(hand_landmarks_3d)
+    n_triplets = len(joint_triplets)
+    angles_array = np.zeros((n_frames, n_triplets))
 
+    for frame_idx in range(n_frames):
+        landmarks = hand_landmarks_3d[frame_idx]
+        frame_angles = []
+        for i, (a_idx, b_idx, c_idx) in enumerate(joint_triplets):
+            a, b, c = landmarks[a_idx], landmarks[b_idx], landmarks[c_idx]
+            angle = calculate_angle(a, b, c, normal_vector)
+            angle_value = convert_angles(angle)
+            frame_angles.append(angle_value)
+        angles_array[frame_idx] = frame_angles
 
-def compute_hand_rotation(wrist, thumb, index):
-    # calculate two vectors
-    v1 = np.array(thumb) - np.array(wrist)
-    v2 = np.array(index) - np.array(wrist)
-
-    # normal vector
-    normal = np.cross(v1, v2)
-
-    # normalization
-    normal = normal / np.linalg.norm(normal)
-
-    # 计算旋转矩阵
-    ref_vector = np.array([0, 0, 1])  # 参考方向（Z 轴向上）
-    rot_matrix = np.linalg.inv(R.align_vectors([normal], [ref_vector])[0].as_matrix())
-
-    # 转换为欧拉角 (yaw, pitch, roll)
-    yaw, pitch, roll = R.from_matrix(rot_matrix).as_euler('zyx', degrees=True)
-    # z-axis, y-axis, x-axis
-
-    return normal, yaw, pitch, roll
-
+    return angles_array
 
 
 def review_keyframes(video_path, keyframes):
@@ -179,62 +180,6 @@ def review_keyframes(video_path, keyframes):
 # --------------------------------------
 # Construct and write XML file
 
-def build_element(tag, content):
-    # 创建元素和属性
-    elem = ET.Element(tag)
-    for key, value in content.items():
-        if key.startswith("@"):
-            attr_name = key[1:]
-            elem.set(attr_name, value)
-        elif isinstance(value, dict):
-            child = build_element(key, value)
-            elem.append(child)
-        elif isinstance(value, list):
-            for item in value:
-                child = build_element(key, item)
-                elem.append(child)
-        else:
-            elem.text = str(value)
-    return elem
-
-def build_xml_from_dict(root_tag, data_dict):
-    root = ET.Element(root_tag)
-    for tag, content in data_dict.items():
-        root.append(build_element(tag, content))
-    return ET.ElementTree(root)
-
-
-def build_xml_frames_with_frame_index(all_angles):
-    root = ET.Element("sequence")
-
-    for idx, angle_row in enumerate(all_angles):
-        frame = ET.SubElement(root, "frame", index=str(idx))  # keep frame number
-
-        hand = ET.SubElement(frame, "hand", side="A")  # one hand
-
-        # j1 to j3 for f0 to f4
-        for i in range(5):
-            j1 = angle_row[i * 3] if i * 3 < len(angle_row) else ""
-            j2 = angle_row[i * 3 + 1] if i * 3 + 1 < len(angle_row) else ""
-            j3 = angle_row[i * 3 + 2] if i * 3 + 2 < len(angle_row) else ""
-            finger = ET.SubElement(hand, f"f{i}")
-            finger.set("j1", f"{j1:.1f}" if j1 != "" and not np.isnan(j1) else "")
-            finger.set("j2", f"{j2:.1f}" if j2 != "" and not np.isnan(j2) else "")
-            finger.set("j3", f"{j3:.1f}" if j3 != "" and not np.isnan(j3) else "")
-
-        # keep structure
-        # ET.SubElement(hand, "orientation", xAngle="", yAngle="", zAngle="")
-        # 添加 orientation
-        orientation = ET.SubElement(hand, "orientation")
-        orientation.set("xAngle", f"{yaw:.1f}" if not np.isnan(yaw) else "")
-        orientation.set("yAngle", f"{pitch:.1f}" if not np.isnan(pitch) else "")
-        orientation.set("zAngle", f"{roll:.1f}" if not np.isnan(roll) else "")
-        location = ET.SubElement(hand, "location")
-        ET.SubElement(location, "loc", x="", y="", z="")
-        ET.SubElement(hand, "movement")
-
-    return ET.ElementTree(root)
-
 def print_keyframe_angles(hand_name, keyframes, all_angles):
     print(f"\n{hand_name} hand keyframe angles:")
     for idx in keyframes:
@@ -260,28 +205,58 @@ def first_time():
     furture notation.
     :return:
     """
+
+    joint_triplets = [
+        (0, 1, 2), (1, 2, 3), (2, 3, 4),  # f0 - j1, j2, j3
+        (0, 5, 6), (5, 6, 7), (6, 7, 8),  # f1 - j1, j2, j3
+        (0, 9, 10), (9, 10, 11), (10, 11, 12),  # f2 - j1, j2, j3
+        (0, 13, 14), (13, 14, 15), (14, 15, 16),  # f3 - j1, j2, j3
+        (0, 17, 18), (17, 18, 19), (18, 19, 20),  # f4 - j1, j2, j3
+    ]
+    joint_names = [
+        "f0_j1", "f0_j2", "f0_j3",
+        "f1_j1", "f1_j2", "f1_j3",
+        "f2_j1", "f2_j2", "f2_j3",
+        "f3_j1", "f3_j2", "f3_j3",
+        "f4_j1", "f4_j2", "f4_j3"
+    ]
+    all_angles = []
+
     args = parse_args()
     file_path = args.data_path
     dataset = args.dataset
 
-    left_hand, right_hand, left_wrist, right_wrist = extract_coordinates.get_coordinates(file_path)
+    left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks = extract_coordinates.get_coordinates(file_path)
     print("Coordinates successfully detected!")
     # print("left_hand:", left_hand)
     # print("right_hand:", right_hand)
     # print("left_wrist:", left_wrist)
     # print("right_wrist:", right_wrist)
 
+    left_hand_angles = extract_finger_angles_all_frames(left_hand, joint_triplets)
+    right_hand_angles = extract_finger_angles_all_frames(right_hand, joint_triplets)
+    print("left_hand_angles:", left_hand_angles)
+    print("right_hand_angles:", right_hand_angles)
 
-    keyframes_left, keyframes_right, midpoints_left, midpoints_right = keyframes_detection_and_notation.process_hand_landmarks(
-        left_wrist, right_wrist)
 
-    print("keyframes_left:", keyframes_left)
-    print("keyframes_right:", keyframes_right)
-    print("midpoints_left:", midpoints_left)
-    print("midpoints_right:", midpoints_right)
 
-    review_keyframes(file_path, keyframes_left)
 
+
+    # keyframes_left, keyframes_right, midpoints_left, midpoints_right = keyframes_detection_and_notation.process_hand_landmarks(
+    #     left_wrist, right_wrist)
+    #
+    # print("keyframes_left:", keyframes_left)
+    # print("keyframes_right:", keyframes_right)
+    # print("midpoints_left:", midpoints_left)
+    # print("midpoints_right:", midpoints_right)
+    #
+    # review_keyframes(file_path, keyframes_left)
+
+    left_seg, right_seg = keyframes_detection_and_notation.process_hand_landmarks(left_wrist, right_wrist,left_hand_angles, right_hand_angles)
+
+    left_hand_location = hand_location.get_hand_position(left_seg, pose_landmarks, left_hand)
+
+    construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB', movement=None)
 
 
 
@@ -456,7 +431,7 @@ def main():
     print("Left hand midpoints between keyframes:", midpoints_left)
     print("Right hand midpoints between keyframes:", midpoints_right)
 
-    xml_tree = build_xml_frames_with_frame_index(all_angles)
+    xml_tree = construct_xml.build_xml_frames_with_frame_index(all_angles)
     construct_xml.save_pretty_xml(xml_tree, "hand_angles.xml")
 
     print(frame_numbers)

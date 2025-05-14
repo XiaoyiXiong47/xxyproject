@@ -11,6 +11,67 @@ import cv2
 import mediapipe as mp
 from mpl_toolkits.mplot3d import Axes3D
 import extract_coordinates
+from typing import List, Tuple
+from scipy.spatial.distance import cosine
+
+def is_same_shape(angle1: np.ndarray, angle2: np.ndarray, threshold: float = 0.95) -> bool:
+    """比较两个角度向量是否表示相似的手型"""
+    similarity = 1 - cosine(angle1, angle2)
+    return similarity > threshold
+
+
+def segment_signs_from_velocity_and_shape(
+        angles: List[np.ndarray],  # 每帧的手指角度向量
+        velocity: np.ndarray  # 速度序列（已平滑）
+    ) -> List[Tuple[int, int]]:
+    """
+    基于速度极小值分段，并合并角度相似的段
+    :param angles: 每帧的手型角度向量（shape=(n_frames, n_dims)）
+    :param velocity: 手腕的平滑速度曲线
+    :return: List of (start_frame, end_frame)
+    """
+
+    # 第一步：用速度极小值作为 keyframes
+    def find_velocity_minima(v):
+        from scipy.signal import argrelextrema
+        minima = argrelextrema(v, np.less, order=3)[0]
+        return minima.tolist()
+
+    def merge_close_keyframes(keyframes, min_gap=5):
+        if not keyframes:
+            return []
+        merged = [keyframes[0]]
+        for kf in keyframes[1:]:
+            if kf - merged[-1] >= min_gap:
+                merged.append(kf)
+        return merged
+
+    keyframes = find_velocity_minima(velocity)
+    keyframes = merge_close_keyframes(sorted(set(keyframes)), min_gap=5)
+
+    # 第二步：生成 segments
+    segments = [(keyframes[i], keyframes[i + 1]) for i in range(len(keyframes) - 1)]
+
+    # 第三步：按手型相似性合并段
+    merged_segments = []
+    if not segments:
+        return merged_segments
+
+    prev_start, prev_end = segments[0]
+    prev_shape = np.mean(angles[prev_start:prev_end], axis=0)
+
+    for start, end in segments[1:]:
+        current_shape = np.mean(angles[start:end], axis=0)
+        if is_same_shape(prev_shape, current_shape):
+            prev_end = end  # 合并
+        else:
+            merged_segments.append((prev_start, prev_end))
+            prev_start, prev_end = start, end
+            prev_shape = current_shape
+
+    merged_segments.append((prev_start, prev_end))
+    return merged_segments
+
 
 def load_video(file_path):
     """
@@ -292,6 +353,19 @@ def detect_keyframes(trajectory, velocity):
 
     return filtered_keyframes
 
+def detect_keyframes_by_velocity(velocity):
+    velocity_minima = find_velocity_minima(velocity)
+    # merge key frames that are too close
+    filtered_keyframes = merge_close_keyframes(sorted(set(velocity_minima)), min_gap=5)
+
+    return filtered_keyframes
+
+def detect_keyframes_by_trajectory(trajectory):
+    direction_changes = find_direction_changes(trajectory)
+    extremes = find_position_extremes(trajectory)
+    candidates = sorted(set(direction_changes) | set(extremes))
+    filtered_keyframes = merge_close_keyframes(candidates, min_gap=5)
+    return filtered_keyframes
 
 
 # -------------------------------
@@ -315,16 +389,34 @@ def plot_keyframes(leftorright, trajectory, keyframes):
 # 主函数封装
 # -------------------------------
 
-def process_hand_landmarks(left_wrist, right_wrist):
-
+def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
+    """
+    Given a sequence of left and right wrist, also the joint angles at each frame.
+    Return two lists containing tuples (start, end)
+    :param left_wrist:
+    :param right_wrist:
+    :param left_angles:
+    :param right_angles:
+    :return:
+    """
     keyframes = {'left': [], 'right': []}
 
     left_wrist_array = np.array(left_wrist)
+    right_wrist_array = np.array(right_wrist)
+
+    if left_wrist_array.shape[0] == 0:
+        # left wrist is empty
+        left_seg = []
+    if right_wrist_array.shape[0] == 0:
+        # right wrist is empty
+        right_seg = []
     if left_wrist_array.ndim != 2 or left_wrist_array.shape[1] != 3:
         raise ValueError(f"left_wrist data shape invalid: {left_wrist_array.shape}")
+    if right_wrist_array.ndim != 2 or right_wrist_array.shape[1] != 3:
+        raise ValueError(f"right_wrist data shape invalid: {right_wrist_array.shape}")
 
-    left_wrist_trajectory = interpolate_nan_rows(np.array(left_wrist))
-    right_wrist_trajectory = interpolate_nan_rows(np.array(right_wrist))
+    left_wrist_trajectory = interpolate_nan_rows(left_wrist_array)
+    right_wrist_trajectory = interpolate_nan_rows(right_wrist_array)
 
     # wrist_traj = get_wrist_trajectory(hand_landmarks)
     # velocity = compute_velocity(wrist_traj)
@@ -335,66 +427,76 @@ def process_hand_landmarks(left_wrist, right_wrist):
     left_velocity_smooth = smooth_signal(left_velocity)
     right_velocity_smooth = smooth_signal(right_velocity)
 
-    left_start, left_end = get_movement_segment(left_velocity_smooth)
-    right_start, right_end = get_movement_segment(right_velocity_smooth)
+    print("left_velocity_smooth:", left_velocity_smooth)
+    print("right_velocity_smooth:", right_velocity_smooth)
+    # -------------------------------
+    left_seg = segment_signs_from_velocity_and_shape(left_angles, left_velocity_smooth)
+    right_seg = segment_signs_from_velocity_and_shape(right_angles, right_velocity_smooth)
+    print("left_seg:", left_seg)
+    print("right_seg:", right_seg)
+    return left_seg, right_seg
+    # -------------------------------
 
-    # start, end = get_movement_segment(velocity_smooth)
-    motion_traj_left = left_wrist_trajectory[left_start:left_end]
-    motion_traj_right = right_wrist_trajectory[right_start:right_end]
+    # left_start, left_end = get_movement_segment(left_velocity_smooth)
+    # right_start, right_end = get_movement_segment(right_velocity_smooth)
+    #
+    # # start, end = get_movement_segment(velocity_smooth)
+    # motion_traj_left = left_wrist_trajectory[left_start:left_end]
+    # motion_traj_right = right_wrist_trajectory[right_start:right_end]
+    #
+    # motion_vel_left = left_velocity_smooth[left_start:left_end - 1]  # 注意 diff 少1帧
+    # motion_vel_right = left_velocity_smooth[right_start:right_end - 1]  # 注意 diff 少1帧
+    #
+    # keyframes_left = detect_keyframes(motion_traj_left, motion_vel_left)
+    # keyframes_right = detect_keyframes(motion_traj_right, motion_vel_right)
 
-    motion_vel_left = left_velocity_smooth[left_start:left_end - 1]  # 注意 diff 少1帧
-    motion_vel_right = left_velocity_smooth[right_start:right_end - 1]  # 注意 diff 少1帧
-
-    keyframes_left = detect_keyframes(motion_traj_left, motion_vel_left)
-    keyframes_right = detect_keyframes(motion_traj_right, motion_vel_right)
-
-    # keyframes_left = merge_close_keyframes(keyframes_left, min_gap=5)
-    # keyframes_right = merge_close_keyframes(keyframes_right, min_gap=5)
-
-    keyframes_left = [k + left_start for k in keyframes_left]  # 恢复原始帧索引
-    keyframes_right = [k + right_start for k in keyframes_right]  # 恢复原始帧索引
-
-    # plot_keyframes('Left', left_wrist_trajectory, keyframes_left)
-    # plot_keyframes('Right', right_wrist_trajectory, keyframes_right)
-
-
-    # return keyframes_left, keyframes_right
-    # 从运动轨迹中检测关键帧之间的中间 turning points
-    midpoints_left = []
-    for i in range(len(keyframes_left) - 1):
-        seg_start = keyframes_left[i] - left_start
-        seg_end = keyframes_left[i + 1] - left_start
-        if seg_start < 0 or seg_end > len(motion_traj_left):
-            midpoints_left.append([])
-            continue
-        seg = motion_traj_left[seg_start:seg_end]
-        if len(seg) >= 10:
-            mid_idx, _, _, _ = detect_turning_points_auto_with_best(
-                seg[:, 0], seg[:, 1], seg[:, 2],
-                step_ratio=0.03, min_step=5, k=1.0, min_gap=10
-            )
-            midpoints_left.append([keyframes_left[i] + j for j in mid_idx])
-        else:
-            midpoints_left.append([])
-
-    midpoints_right = []
-    for i in range(len(keyframes_right) - 1):
-        seg_start = keyframes_right[i] - right_start
-        seg_end = keyframes_right[i + 1] - right_start
-        if seg_start < 0 or seg_end > len(motion_traj_right):
-            midpoints_right.append([])
-            continue
-        seg = motion_traj_right[seg_start:seg_end]
-        if len(seg) >= 10:
-            mid_idx, _, _, _ = detect_turning_points_auto_with_best(
-                seg[:, 0], seg[:, 1], seg[:, 2],
-                step_ratio=0.03, min_step=5, k=1.0, min_gap=10
-            )
-            midpoints_right.append([keyframes_right[i] + j for j in mid_idx])
-        else:
-            midpoints_right.append([])
-
-    return keyframes_left, keyframes_right, midpoints_left, midpoints_right
+    # # keyframes_left = merge_close_keyframes(keyframes_left, min_gap=5)
+    # # keyframes_right = merge_close_keyframes(keyframes_right, min_gap=5)
+    #
+    # keyframes_left = [k + left_start for k in keyframes_left]  # 恢复原始帧索引
+    # keyframes_right = [k + right_start for k in keyframes_right]  # 恢复原始帧索引
+    #
+    # # plot_keyframes('Left', left_wrist_trajectory, keyframes_left)
+    # # plot_keyframes('Right', right_wrist_trajectory, keyframes_right)
+    #
+    #
+    # # return keyframes_left, keyframes_right
+    # # 从运动轨迹中检测关键帧之间的中间 turning points
+    # midpoints_left = []
+    # for i in range(len(keyframes_left) - 1):
+    #     seg_start = keyframes_left[i] - left_start
+    #     seg_end = keyframes_left[i + 1] - left_start
+    #     if seg_start < 0 or seg_end > len(motion_traj_left):
+    #         midpoints_left.append([])
+    #         continue
+    #     seg = motion_traj_left[seg_start:seg_end]
+    #     if len(seg) >= 10:
+    #         mid_idx, _, _, _ = detect_turning_points_auto_with_best(
+    #             seg[:, 0], seg[:, 1], seg[:, 2],
+    #             step_ratio=0.03, min_step=5, k=1.0, min_gap=10
+    #         )
+    #         midpoints_left.append([keyframes_left[i] + j for j in mid_idx])
+    #     else:
+    #         midpoints_left.append([])
+    #
+    # midpoints_right = []
+    # for i in range(len(keyframes_right) - 1):
+    #     seg_start = keyframes_right[i] - right_start
+    #     seg_end = keyframes_right[i + 1] - right_start
+    #     if seg_start < 0 or seg_end > len(motion_traj_right):
+    #         midpoints_right.append([])
+    #         continue
+    #     seg = motion_traj_right[seg_start:seg_end]
+    #     if len(seg) >= 10:
+    #         mid_idx, _, _, _ = detect_turning_points_auto_with_best(
+    #             seg[:, 0], seg[:, 1], seg[:, 2],
+    #             step_ratio=0.03, min_step=5, k=1.0, min_gap=10
+    #         )
+    #         midpoints_right.append([keyframes_right[i] + j for j in mid_idx])
+    #     else:
+    #         midpoints_right.append([])
+    #
+    # return keyframes_left, keyframes_right, midpoints_left, midpoints_right
 
 def main():
     file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'
@@ -402,9 +504,6 @@ def main():
 
     # Get video frame rate
     fps = cap.get(cv2.CAP_PROP_FPS)
-    time_per_frame = 1 / fps
-
-    frame_count = 0
     frames = []
     pose, hands, face_mesh = extract_coordinates.init_mediapipe()
 
