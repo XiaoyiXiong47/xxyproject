@@ -26,9 +26,9 @@ def init_mediapipe():
     #
     mp_hands = mp.solutions.hands
     mp_pose = mp.solutions.pose
+    mp_face_mesh = mp.solutions.face_mesh
     pose = mp_pose.Pose(static_image_mode=False)
     hands = mp_hands.Hands(static_image_mode=False)
-    mp_face_mesh = mp.solutions.face_mesh
     face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True)
     return pose, hands, face_mesh
 
@@ -68,10 +68,13 @@ def get_coordinates(file_path):
     left_hand_location_by_frame = []
     right_hand_location_by_frame = []
 
+    pose_landmarks = None
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
+
         # convert to RGB
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # hand detection

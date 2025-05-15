@@ -228,10 +228,10 @@ def first_time():
 
     left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks = extract_coordinates.get_coordinates(file_path)
     print("Coordinates successfully detected!")
-    # print("left_hand:", left_hand)
-    # print("right_hand:", right_hand)
-    # print("left_wrist:", left_wrist)
-    # print("right_wrist:", right_wrist)
+    print("left_hand:", left_hand)
+    print("right_hand:", right_hand)
+    print("left_wrist:", left_wrist)
+    print("right_wrist:", right_wrist)
 
     left_hand_angles = extract_finger_angles_all_frames(left_hand, joint_triplets)
     right_hand_angles = extract_finger_angles_all_frames(right_hand, joint_triplets)
@@ -254,9 +254,35 @@ def first_time():
 
     left_seg, right_seg = keyframes_detection_and_notation.process_hand_landmarks(left_wrist, right_wrist,left_hand_angles, right_hand_angles)
 
+    cap, video_id = load_video(file_path)
+    frame_idx = 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+        cv2.putText(frame, f"Frame: {frame_idx}", (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        # show result
+        cv2.imshow(video_id, frame)
+        if cv2.waitKey(200) & 0xFF == ord('q'):
+            break
+        frame_idx+=1
+    cap.release()
+    cv2.destroyAllWindows()
+
     left_hand_location = hand_location.get_hand_position(left_seg, pose_landmarks, left_hand)
 
+    gloss = "hehehe"
+
+    for (start, end) in left_seg:
+        start_hand_landmarks = left_hand[start]
+        end_hand_landmarks = left_hand[end]
+        normal, yaw, pitch, roll = hand_rotation.compute_hand_rotation(start_hand_landmarks[0], start_hand_landmarks[5], start_hand_landmarks[17])
+        construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB',
+                                     movement=None)
+        normal, yaw, pitch, roll = hand_rotation.compute_hand_rotation(end_hand_landmarks[0], end_hand_landmarks[5], end_hand_landmarks[17])
+
+
     construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB', movement=None)
+
 
 
 

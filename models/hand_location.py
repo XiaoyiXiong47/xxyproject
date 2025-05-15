@@ -21,8 +21,17 @@ def convert_axes(hand_coord, ref_coord):
 
 
 def get_hand_position(hand_index, pose_landmarks, hand_landmarks):
+    """
+    Calculate the hand position relative to the center of the shoulders,
+    scaled by palm length (half of shoulder width), and rounded to the nearest 50 units.
+    :param hand_index: List of tuples (start, end) containing start and end index of frames for poteintial movement.
+    :param pose_landmarks: Sequence of pose landmarks at each frame
+    :param hand_landmarks: Sequence of one hand landmarks at each frame
+    :return: (rel_x, rel_y, rel_z): relative distances to center of the shoulders in palm_length units
+    """
+    hand_position = []
     if not (pose_landmarks and hand_landmarks):
-        return None
+        return None, None, None
 
     # 锁骨中心
     shoulder_left = np.array([
@@ -37,6 +46,7 @@ def get_hand_position(hand_index, pose_landmarks, hand_landmarks):
         hand_landmarks[hand_index].z
     ])
 
+    # 坐标轴转换（默认以摄像头为正面）
     relative_pos = convert_axes(hand_pos, shoulder_mid)
 
     # 使用肩宽的一半作为单位手掌长度

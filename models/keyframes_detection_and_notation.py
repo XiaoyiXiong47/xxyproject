@@ -392,49 +392,48 @@ def plot_keyframes(leftorright, trajectory, keyframes):
 def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
     """
     Given a sequence of left and right wrist, also the joint angles at each frame.
-    Return two lists containing tuples (start, end)
-    :param left_wrist:
-    :param right_wrist:
-    :param left_angles:
-    :param right_angles:
+    Return two lists containing tuples (start, end) for each hand.
+    :param left_wrist: List of coordinates of left wrist
+    :param right_wrist:List of coordinates of right wrist
+    :param left_angles: 每一帧的手指角度特征
+    :param right_angles: 每一帧的手指角度特征
     :return:
     """
-    keyframes = {'left': [], 'right': []}
+    left_seg = []
+    right_seg = []
 
-    left_wrist_array = np.array(left_wrist)
-    right_wrist_array = np.array(right_wrist)
+    # Process left hand if data is valid
+    if isinstance(left_wrist, list) and len(left_wrist) > 0:
+        left_wrist_array = np.array(left_wrist)
+        if left_wrist_array.ndim == 2 and left_wrist_array.shape[1] == 3:
+            left_wrist_trajectory = interpolate_nan_rows(left_wrist_array)
+            left_velocity = compute_velocity(left_wrist_trajectory)
+            left_velocity_smooth = smooth_signal(left_velocity)
+            # print("left_velocity_smooth:", left_velocity_smooth)
+            left_seg = segment_signs_from_velocity_and_shape(left_angles, left_velocity_smooth)
+            print("left_seg:", left_seg)
+        else:
+            print(f"[Warning] Invalid left_wrist shape: {left_wrist_array.shape}, skipping left hand processing.")
+    else:
+        print("[Info] No left hand data provided.")
 
-    if left_wrist_array.shape[0] == 0:
-        # left wrist is empty
-        left_seg = []
-    if right_wrist_array.shape[0] == 0:
-        # right wrist is empty
-        right_seg = []
-    if left_wrist_array.ndim != 2 or left_wrist_array.shape[1] != 3:
-        raise ValueError(f"left_wrist data shape invalid: {left_wrist_array.shape}")
-    if right_wrist_array.ndim != 2 or right_wrist_array.shape[1] != 3:
-        raise ValueError(f"right_wrist data shape invalid: {right_wrist_array.shape}")
+    # Process right hand if data is valid
+    if isinstance(right_wrist, list) and len(right_wrist) > 0:
+        right_wrist_array = np.array(right_wrist)
+        if right_wrist_array.ndim == 2 and right_wrist_array.shape[1] == 3:
+            right_wrist_trajectory = interpolate_nan_rows(right_wrist_array)
+            right_velocity = compute_velocity(right_wrist_trajectory)
+            right_velocity_smooth = smooth_signal(right_velocity)
+            # print("right_velocity_smooth:", right_velocity_smooth)
+            right_seg = segment_signs_from_velocity_and_shape(right_angles, right_velocity_smooth)
+            print("right_seg:", right_seg)
+        else:
+            print(f"[Warning] Invalid right_wrist shape: {right_wrist_array.shape}, skipping right hand processing.")
+    else:
+        print("[Info] No right hand data provided.")
 
-    left_wrist_trajectory = interpolate_nan_rows(left_wrist_array)
-    right_wrist_trajectory = interpolate_nan_rows(right_wrist_array)
-
-    # wrist_traj = get_wrist_trajectory(hand_landmarks)
-    # velocity = compute_velocity(wrist_traj)
-
-    left_velocity = compute_velocity(left_wrist_trajectory)
-    right_velocity = compute_velocity(right_wrist_trajectory)
-
-    left_velocity_smooth = smooth_signal(left_velocity)
-    right_velocity_smooth = smooth_signal(right_velocity)
-
-    print("left_velocity_smooth:", left_velocity_smooth)
-    print("right_velocity_smooth:", right_velocity_smooth)
-    # -------------------------------
-    left_seg = segment_signs_from_velocity_and_shape(left_angles, left_velocity_smooth)
-    right_seg = segment_signs_from_velocity_and_shape(right_angles, right_velocity_smooth)
-    print("left_seg:", left_seg)
-    print("right_seg:", right_seg)
     return left_seg, right_seg
+
     # -------------------------------
 
     # left_start, left_end = get_movement_segment(left_velocity_smooth)
