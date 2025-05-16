@@ -28,3 +28,14 @@ def compute_hand_rotation(wrist, thumb, index):
     return normal, yaw, pitch, roll
 
 
+def palm_nomal_vector(wrist, thumb, index):
+    # calculate two vectors
+    v1 = np.array(thumb) - np.array(wrist)
+    v2 = np.array(index) - np.array(wrist)
+
+    # normal vector
+    normal = np.cross(v1, v2)
+
+    # normalization
+    normal = normal / np.linalg.norm(normal)
+    return normal

@@ -134,11 +134,6 @@ def smooth_signal(signal, sigma=2):
 # Step 3. 识别运动段（去掉静止）
 # -------------------------------
 
-# def get_movement_segment(velocity, threshold=0.01):
-#     is_moving = velocity > threshold
-#     start = np.argmax(is_moving)
-#     end = len(is_moving) - np.argmax(is_moving[::-1])
-#     return start, end
 def get_movement_segment(velocity, threshold=0.01):
     if velocity is None or len(velocity) == 0:
         return 0, 0  # 返回空段
@@ -388,6 +383,25 @@ def plot_keyframes(leftorright, trajectory, keyframes):
 # -------------------------------
 # 主函数封装
 # -------------------------------
+
+def detect_keyframes_using_multi_indicators(left_wrist, right_wrist, left_angles, right_angles, left_normal, right_normal):
+    """
+
+    :param left_wrist:
+    :param right_wrist:
+    :param left_angles:
+    :param right_angles:
+    :param left_normal:
+    :param right_normal:
+    :return:
+    """
+
+    left_seg = []
+    right_seg = []
+    left_mid = []
+    right_mid = []
+    return left_seg, right_seg, left_mid, right_mid
+
 
 def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
     """

@@ -284,6 +284,39 @@ def first_time():
     construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB', movement=None)
 
 
+def try_new_method():
+    joint_triplets = [
+        (0, 1, 2), (1, 2, 3), (2, 3, 4),  # f0 - j1, j2, j3
+        (0, 5, 6), (5, 6, 7), (6, 7, 8),  # f1 - j1, j2, j3
+        (0, 9, 10), (9, 10, 11), (10, 11, 12),  # f2 - j1, j2, j3
+        (0, 13, 14), (13, 14, 15), (14, 15, 16),  # f3 - j1, j2, j3
+        (0, 17, 18), (17, 18, 19), (18, 19, 20),  # f4 - j1, j2, j3
+    ]
+    joint_names = [
+        "f0_j1", "f0_j2", "f0_j3",
+        "f1_j1", "f1_j2", "f1_j3",
+        "f2_j1", "f2_j2", "f2_j3",
+        "f3_j1", "f3_j2", "f3_j3",
+        "f4_j1", "f4_j2", "f4_j3"
+    ]
+    all_angles = []
+
+    args = parse_args()
+    file_path = args.data_path
+    dataset = args.dataset
+
+
+    left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks = extract_coordinates.get_coordinates(file_path)
+    print("Coordinates successfully detected!")
+    print("left_hand:", left_hand)
+    print("right_hand:", right_hand)
+    print("left_wrist:", left_wrist)
+    print("right_wrist:", right_wrist)
+
+    left_hand_angles = extract_finger_angles_all_frames(left_hand, joint_triplets)
+    right_hand_angles = extract_finger_angles_all_frames(right_hand, joint_triplets)
+    print("left_hand_angles:", left_hand_angles)
+    print("right_hand_angles:", right_hand_angles)
 
 
 
@@ -475,3 +508,4 @@ def main():
 
 if __name__ == '__main__':
     first_time()
+    # try_new_method()
