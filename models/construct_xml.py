@@ -152,3 +152,120 @@ def xml_sign_block(dataset, gloss,hand_loc, all_angles, yaw=0, pitch=0, roll=0, 
         ET.SubElement(hand, "movement")
 
     return ET.ElementTree(root)
+
+
+# ============================
+
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
+
+
+def prettify_xml(elem):
+    """Return a pretty-printed XML string."""
+    rough_string = ET.tostring(elem, 'utf-8')
+    parsed = minidom.parseString(rough_string)
+    return parsed.toprettyxml(indent="    ")
+
+
+def create_finger_elements(parent, angle_data):
+    """
+    Add <f0> to <f4> tags under parent, using angle_data dict or list.
+    angle_data = {
+        'f0': {'j1': 0, 'j1s': 0, 'j2': 0, 'j3': 0},
+        ...
+    }
+    """
+    for i in range(5):
+        f_tag = f'f{i}'
+        finger = ET.SubElement(parent, f_tag)
+        for key in ['j1', 'j2', 'j3']:
+            finger.set(key, str(angle_data[f_tag][key]))
+
+
+def create_orientation_element(parent, ori):
+    orientation = ET.SubElement(parent, 'orientation')
+    orientation.set('xAngle', str(ori[0]))
+    orientation.set('yAngle', str(ori[1]))
+    orientation.set('zAngle', str(ori[2]))
+
+
+def create_location_element(parent, loc):
+    location = ET.SubElement(parent, 'location')
+    loc_tag = ET.SubElement(location, 'loc')
+    loc_tag.set('x', str(loc[0]))
+    loc_tag.set('y', str(loc[1]))
+    loc_tag.set('z', str(loc[2]))
+
+
+def build_angle_dict(raw_angles):
+    """
+    Convert flat or nested list to dict of finger data for easier XML construction.
+    Assumes: raw_angles = list of 5x4 values => [f0_j1, j1s, j2, j3, f1_j1, j1s, ...]
+    """
+    return {
+        f'f{i}': {
+            'j1': raw_angles[i*4 + 0],
+            'j1s': raw_angles[i*4 + 1],
+            'j2': raw_angles[i*4 + 2],
+            'j3': raw_angles[i*4 + 3],
+        } for i in range(5)
+    }
+
+
+def generate_xml(all_angles, orientation, location,
+                 left_seg, right_seg, left_mid, right_mid,
+                 hand_label='A', output_path='output.xml'):
+    """
+    Generate structured sign language XML based on segmentation and frame data.
+    """
+    root = ET.Element('sign_annotations')
+
+    for side, segs, mids in [('A', right_seg, right_mid), ('B', left_seg, left_mid)]:
+        for idx, (start, end) in enumerate(segs):
+            hand = ET.SubElement(root, 'hand')
+            hand.set('side', side)
+
+            # Start frame data
+            start_angles = build_angle_dict(all_angles[start])
+            create_finger_elements(hand, start_angles)
+            create_orientation_element(hand, orientation[start])
+            create_location_element(hand, location[start])
+
+            # Movement
+            movement = ET.SubElement(hand, 'movement')
+            duration = end - start
+            movement.set('duration', str(duration))
+
+            # Midpoints (optional)
+            segment_mids = mids[idx] if isinstance(mids[idx], list) else [mids[idx]]
+            for mid_frame in segment_mids:
+                if mid_frame > start and mid_frame < end:
+                    mid = ET.SubElement(movement, 'mid')
+                    mid_angles = build_angle_dict(all_angles[mid_frame])
+                    create_finger_elements(mid, mid_angles)
+                    create_orientation_element(mid, orientation[mid_frame])
+                    create_location_element(mid, location[mid_frame])
+
+            # End frame
+            end_tag = ET.SubElement(movement, 'end')
+            end_angles = build_angle_dict(all_angles[end])
+            create_finger_elements(end_tag, end_angles)
+            create_orientation_element(end_tag, orientation[end])
+            create_location_element(end_tag, location[end])
+
+            # Optional rels (you can insert logic here to conditionally add it)
+            if side == 'A':  # example: only for dominant hand
+                rels = ET.SubElement(end_tag, 'rels')
+                rel = ET.SubElement(rels, 'rel')
+                for s in ['A', 'B']:
+                    handLoc = ET.SubElement(rel, 'handLoc')
+                    handLoc.set('side', s)
+                    handLoc.set('place', 'f1')
+                    handLoc.set('y', '66')
+                    handLoc.set('yAngle', '180')
+                    handLoc.set('z', '0')
+
+    # Save or return XML
+    with open(output_path, 'w') as f:
+        f.write(prettify_xml(root))
+    print(f"XML saved to {output_path}")

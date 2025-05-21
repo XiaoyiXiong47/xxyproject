@@ -51,6 +51,7 @@ def segment_signs_from_velocity_and_shape(
 
     # 第二步：生成 segments
     segments = [(keyframes[i], keyframes[i + 1]) for i in range(len(keyframes) - 1)]
+    print("segments:", segments)
 
     # 第三步：按手型相似性合并段
     merged_segments = []
@@ -71,6 +72,35 @@ def segment_signs_from_velocity_and_shape(
 
     merged_segments.append((prev_start, prev_end))
     return merged_segments
+
+def detect_pause_then_motion(hand_landmarks, pause_length=5, pause_thresh=0.001, motion_thresh=0.002):
+    """
+    检测“短暂停顿 + 紧接运动”模式。
+    :param positions: 手腕或掌心坐标序列 [ [x, y, z], ... ]
+    :param pause_length: 静止的最短帧数（例如帧率为30时，5帧=0.17s）
+    :param pause_thresh: 静止速度阈值
+    :param motion_thresh: 开始移动的速度阈值
+    :return: 所有检测到的动作开始帧索引（list）
+    """
+    velocity = compute_velocity(hand_landmarks)
+    n = len(velocity)
+    motion_starts = []
+
+    i = 0
+    while i < n - pause_length - 1:
+        # 检测是否是静止段
+        if np.all(velocity[i:i+pause_length] < pause_thresh):
+            # 检查静止段之后是否立即开始移动
+            for j in range(i + pause_length, min(i + pause_length + 5, n)):
+                if velocity[j] > motion_thresh:
+                    motion_starts.append(j)
+                    i = j + 1  # 跳过这段，避免重复检测
+                    break
+            else:
+                i += 1
+        else:
+            i += 1
+    return motion_starts
 
 
 def load_video(file_path):
@@ -440,6 +470,8 @@ def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
             right_velocity_smooth = smooth_signal(right_velocity)
             # print("right_velocity_smooth:", right_velocity_smooth)
             right_seg = segment_signs_from_velocity_and_shape(right_angles, right_velocity_smooth)
+            # starts = detect_pause_then_motion(right_wrist)
+            # print("Detected keyframes after short pauses:", starts)
             print("right_seg:", right_seg)
         else:
             print(f"[Warning] Invalid right_wrist shape: {right_wrist_array.shape}, skipping right hand processing.")
