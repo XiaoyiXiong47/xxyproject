@@ -37,7 +37,7 @@ def segment_signs_from_velocity_and_shape(
         minima = argrelextrema(v, np.less, order=3)[0]
         return minima.tolist()
 
-    def merge_close_keyframes(keyframes, min_gap=5):
+    def merge_close_keyframes(keyframes, min_gap=3):
         if not keyframes:
             return []
         merged = [keyframes[0]]
@@ -47,8 +47,8 @@ def segment_signs_from_velocity_and_shape(
         return merged
 
     keyframes = find_velocity_minima(velocity)
-    keyframes = merge_close_keyframes(sorted(set(keyframes)), min_gap=5)
-
+    keyframes = merge_close_keyframes(sorted(set(keyframes)), min_gap=3)
+    print("keyframes:", keyframes)
     # 第二步：生成 segments
     segments = [(keyframes[i], keyframes[i + 1]) for i in range(len(keyframes) - 1)]
     print("segments:", segments)
