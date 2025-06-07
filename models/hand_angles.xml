@@ -1,0 +1,1207 @@
+<?xml version="1.0" ?>
+<sequence>
+  <frame index="0">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="15.0"/>
+      <f1 j1="60.0" j2="15.0" j3="0.0"/>
+      <f2 j1="45.0" j2="15.0" j3="0.0"/>
+      <f3 j1="45.0" j2="15.0" j3="15.0"/>
+      <f4 j1="30.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="1">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="15.0"/>
+      <f1 j1="45.0" j2="0.0" j3="0.0"/>
+      <f2 j1="45.0" j2="15.0" j3="0.0"/>
+      <f3 j1="45.0" j2="15.0" j3="15.0"/>
+      <f4 j1="30.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="2">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="15.0"/>
+      <f1 j1="45.0" j2="0.0" j3="0.0"/>
+      <f2 j1="45.0" j2="15.0" j3="0.0"/>
+      <f3 j1="45.0" j2="15.0" j3="15.0"/>
+      <f4 j1="30.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="3">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="60.0" j2="0.0" j3="0.0"/>
+      <f2 j1="45.0" j2="15.0" j3="0.0"/>
+      <f3 j1="60.0" j2="15.0" j3="15.0"/>
+      <f4 j1="30.0" j2="0.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="4">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="45.0" j2="15.0" j3="15.0"/>
+      <f2 j1="45.0" j2="30.0" j3="30.0"/>
+      <f3 j1="60.0" j2="30.0" j3="15.0"/>
+      <f4 j1="30.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="5">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="15.0"/>
+      <f1 j1="45.0" j2="15.0" j3="15.0"/>
+      <f2 j1="45.0" j2="30.0" j3="30.0"/>
+      <f3 j1="60.0" j2="30.0" j3="15.0"/>
+      <f4 j1="30.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="6">
+    <hand side="A">
+      <f0 j1="0.0" j2="0.0" j3="0.0"/>
+      <f1 j1="45.0" j2="30.0" j3="15.0"/>
+      <f2 j1="60.0" j2="45.0" j3="30.0"/>
+      <f3 j1="60.0" j2="45.0" j3="15.0"/>
+      <f4 j1="45.0" j2="15.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="7">
+    <hand side="A">
+      <f0 j1="0.0" j2="0.0" j3="0.0"/>
+      <f1 j1="45.0" j2="15.0" j3="15.0"/>
+      <f2 j1="45.0" j2="45.0" j3="30.0"/>
+      <f3 j1="60.0" j2="45.0" j3="30.0"/>
+      <f4 j1="45.0" j2="15.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="8">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="0.0"/>
+      <f1 j1="60.0" j2="15.0" j3="90.0"/>
+      <f2 j1="60.0" j2="45.0" j3="60.0"/>
+      <f3 j1="75.0" j2="45.0" j3="45.0"/>
+      <f4 j1="60.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="9">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="15.0"/>
+      <f1 j1="30.0" j2="90.0" j3="75.0"/>
+      <f2 j1="30.0" j2="45.0" j3="75.0"/>
+      <f3 j1="45.0" j2="45.0" j3="45.0"/>
+      <f4 j1="45.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="10">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="0.0"/>
+      <f1 j1="30.0" j2="90.0" j3="30.0"/>
+      <f2 j1="15.0" j2="60.0" j3="90.0"/>
+      <f3 j1="30.0" j2="75.0" j3="75.0"/>
+      <f4 j1="30.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="11">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="15.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="15.0" j2="90.0" j3="30.0"/>
+      <f3 j1="30.0" j2="90.0" j3="30.0"/>
+      <f4 j1="30.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="12">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="0.0"/>
+      <f1 j1="15.0" j2="60.0" j3="90.0"/>
+      <f2 j1="0.0" j2="0.0" j3="30.0"/>
+      <f3 j1="15.0" j2="15.0" j3="30.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="13">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="0.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="0.0" j2="90.0" j3="15.0"/>
+      <f3 j1="15.0" j2="90.0" j3="15.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="14">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="0.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="0.0" j2="90.0" j3="15.0"/>
+      <f3 j1="15.0" j2="90.0" j3="15.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="15">
+    <hand side="A">
+      <f0 j1="0.0" j2="0.0" j3="0.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="0.0" j2="90.0" j3="15.0"/>
+      <f3 j1="15.0" j2="90.0" j3="15.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="16">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="0.0"/>
+      <f1 j1="15.0" j2="0.0" j3="0.0"/>
+      <f2 j1="15.0" j2="90.0" j3="60.0"/>
+      <f3 j1="15.0" j2="90.0" j3="45.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="17">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="15.0" j2="0.0" j3="0.0"/>
+      <f2 j1="0.0" j2="0.0" j3="0.0"/>
+      <f3 j1="0.0" j2="0.0" j3="0.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="18">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="0.0" j2="90.0" j3="0.0"/>
+      <f3 j1="15.0" j2="90.0" j3="0.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="19">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="0.0" j2="90.0" j3="15.0"/>
+      <f3 j1="15.0" j2="90.0" j3="0.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="20">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="30.0" j2="90.0" j3="15.0"/>
+      <f2 j1="15.0" j2="90.0" j3="15.0"/>
+      <f3 j1="15.0" j2="90.0" j3="0.0"/>
+      <f4 j1="15.0" j2="15.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="21">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="0.0" j2="90.0" j3="15.0"/>
+      <f3 j1="15.0" j2="90.0" j3="0.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="22">
+    <hand side="A">
+      <f0 j1="0.0" j2="0.0" j3="15.0"/>
+      <f1 j1="15.0" j2="0.0" j3="0.0"/>
+      <f2 j1="0.0" j2="0.0" j3="0.0"/>
+      <f3 j1="0.0" j2="0.0" j3="0.0"/>
+      <f4 j1="0.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="23">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="0.0"/>
+      <f1 j1="15.0" j2="90.0" j3="15.0"/>
+      <f2 j1="0.0" j2="90.0" j3="15.0"/>
+      <f3 j1="15.0" j2="90.0" j3="0.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="24">
+    <hand side="A">
+      <f0 j1="30.0" j2="0.0" j3="0.0"/>
+      <f1 j1="15.0" j2="0.0" j3="0.0"/>
+      <f2 j1="15.0" j2="0.0" j3="0.0"/>
+      <f3 j1="15.0" j2="0.0" j3="0.0"/>
+      <f4 j1="15.0" j2="0.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="25">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="15.0"/>
+      <f1 j1="15.0" j2="0.0" j3="0.0"/>
+      <f2 j1="0.0" j2="0.0" j3="0.0"/>
+      <f3 j1="15.0" j2="0.0" j3="0.0"/>
+      <f4 j1="30.0" j2="15.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="26">
+    <hand side="A">
+      <f0 j1="60.0" j2="15.0" j3="0.0"/>
+      <f1 j1="0.0" j2="60.0" j3="45.0"/>
+      <f2 j1="15.0" j2="90.0" j3="15.0"/>
+      <f3 j1="30.0" j2="90.0" j3="15.0"/>
+      <f4 j1="30.0" j2="90.0" j3="30.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="27">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="15.0"/>
+      <f1 j1="15.0" j2="30.0" j3="90.0"/>
+      <f2 j1="0.0" j2="30.0" j3="90.0"/>
+      <f3 j1="15.0" j2="30.0" j3="60.0"/>
+      <f4 j1="30.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="28">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="15.0"/>
+      <f1 j1="30.0" j2="15.0" j3="0.0"/>
+      <f2 j1="45.0" j2="15.0" j3="0.0"/>
+      <f3 j1="45.0" j2="30.0" j3="0.0"/>
+      <f4 j1="45.0" j2="45.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="29">
+    <hand side="A">
+      <f0 j1="30.0" j2="30.0" j3="15.0"/>
+      <f1 j1="30.0" j2="0.0" j3="0.0"/>
+      <f2 j1="30.0" j2="15.0" j3="60.0"/>
+      <f3 j1="45.0" j2="30.0" j3="30.0"/>
+      <f4 j1="45.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="30">
+    <hand side="A">
+      <f0 j1="" j2="" j3=""/>
+      <f1 j1="" j2="" j3=""/>
+      <f2 j1="" j2="" j3=""/>
+      <f3 j1="" j2="" j3=""/>
+      <f4 j1="" j2="" j3=""/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="31">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="60.0"/>
+      <f1 j1="90.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="30.0" j3="15.0"/>
+      <f3 j1="90.0" j2="30.0" j3="30.0"/>
+      <f4 j1="90.0" j2="30.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="32">
+    <hand side="A">
+      <f0 j1="60.0" j2="30.0" j3="15.0"/>
+      <f1 j1="15.0" j2="90.0" j3="30.0"/>
+      <f2 j1="30.0" j2="90.0" j3="15.0"/>
+      <f3 j1="60.0" j2="90.0" j3="15.0"/>
+      <f4 j1="75.0" j2="75.0" j3="30.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="33">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="30.0"/>
+      <f1 j1="90.0" j2="15.0" j3="15.0"/>
+      <f2 j1="90.0" j2="15.0" j3="0.0"/>
+      <f3 j1="90.0" j2="30.0" j3="0.0"/>
+      <f4 j1="90.0" j2="45.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="34">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="60.0"/>
+      <f1 j1="45.0" j2="30.0" j3="15.0"/>
+      <f2 j1="90.0" j2="30.0" j3="30.0"/>
+      <f3 j1="90.0" j2="30.0" j3="45.0"/>
+      <f4 j1="90.0" j2="30.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="35">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="30.0"/>
+      <f1 j1="90.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="0.0" j3="0.0"/>
+      <f3 j1="90.0" j2="15.0" j3="0.0"/>
+      <f4 j1="90.0" j2="30.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="36">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="45.0"/>
+      <f1 j1="45.0" j2="45.0" j3="90.0"/>
+      <f2 j1="30.0" j2="90.0" j3="0.0"/>
+      <f3 j1="15.0" j2="90.0" j3="0.0"/>
+      <f4 j1="45.0" j2="90.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="37">
+    <hand side="A">
+      <f0 j1="0.0" j2="30.0" j3="75.0"/>
+      <f1 j1="75.0" j2="45.0" j3="15.0"/>
+      <f2 j1="60.0" j2="30.0" j3="15.0"/>
+      <f3 j1="60.0" j2="45.0" j3="0.0"/>
+      <f4 j1="60.0" j2="45.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="38">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="45.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="45.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="39">
+    <hand side="A">
+      <f0 j1="30.0" j2="15.0" j3="30.0"/>
+      <f1 j1="30.0" j2="45.0" j3="30.0"/>
+      <f2 j1="15.0" j2="60.0" j3="45.0"/>
+      <f3 j1="15.0" j2="45.0" j3="60.0"/>
+      <f4 j1="0.0" j2="60.0" j3="60.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="40">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="15.0"/>
+      <f1 j1="75.0" j2="15.0" j3="15.0"/>
+      <f2 j1="90.0" j2="45.0" j3="60.0"/>
+      <f3 j1="90.0" j2="30.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="41">
+    <hand side="A">
+      <f0 j1="30.0" j2="30.0" j3="15.0"/>
+      <f1 j1="15.0" j2="0.0" j3="15.0"/>
+      <f2 j1="30.0" j2="45.0" j3="30.0"/>
+      <f3 j1="45.0" j2="45.0" j3="45.0"/>
+      <f4 j1="45.0" j2="45.0" j3="30.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="42">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="0.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="60.0" j3="90.0"/>
+      <f3 j1="90.0" j2="90.0" j3="60.0"/>
+      <f4 j1="90.0" j2="15.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="43">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="15.0"/>
+      <f1 j1="15.0" j2="0.0" j3="0.0"/>
+      <f2 j1="15.0" j2="15.0" j3="0.0"/>
+      <f3 j1="15.0" j2="15.0" j3="0.0"/>
+      <f4 j1="15.0" j2="15.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="44">
+    <hand side="A">
+      <f0 j1="0.0" j2="0.0" j3="0.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="30.0" j3="90.0"/>
+      <f3 j1="90.0" j2="45.0" j3="90.0"/>
+      <f4 j1="90.0" j2="15.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="45">
+    <hand side="A">
+      <f0 j1="15.0" j2="15.0" j3="30.0"/>
+      <f1 j1="45.0" j2="15.0" j3="0.0"/>
+      <f2 j1="30.0" j2="0.0" j3="0.0"/>
+      <f3 j1="30.0" j2="15.0" j3="0.0"/>
+      <f4 j1="45.0" j2="15.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="46">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="0.0"/>
+      <f1 j1="45.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="60.0" j3="45.0"/>
+      <f3 j1="90.0" j2="75.0" j3="90.0"/>
+      <f4 j1="90.0" j2="75.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="47">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="45.0"/>
+      <f1 j1="90.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="0.0"/>
+      <f3 j1="90.0" j2="15.0" j3="15.0"/>
+      <f4 j1="90.0" j2="15.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="48">
+    <hand side="A">
+      <f0 j1="15.0" j2="0.0" j3="15.0"/>
+      <f1 j1="45.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="60.0" j3="30.0"/>
+      <f3 j1="90.0" j2="60.0" j3="75.0"/>
+      <f4 j1="90.0" j2="45.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="49">
+    <hand side="A">
+      <f0 j1="15.0" j2="60.0" j3="15.0"/>
+      <f1 j1="90.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="15.0" j3="0.0"/>
+      <f3 j1="90.0" j2="30.0" j3="0.0"/>
+      <f4 j1="60.0" j2="45.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="50">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="15.0"/>
+      <f1 j1="45.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="45.0" j3="15.0"/>
+      <f3 j1="90.0" j2="45.0" j3="15.0"/>
+      <f4 j1="90.0" j2="30.0" j3="30.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="51">
+    <hand side="A">
+      <f0 j1="" j2="" j3=""/>
+      <f1 j1="" j2="" j3=""/>
+      <f2 j1="" j2="" j3=""/>
+      <f3 j1="" j2="" j3=""/>
+      <f4 j1="" j2="" j3=""/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="52">
+    <hand side="A">
+      <f0 j1="15.0" j2="45.0" j3="30.0"/>
+      <f1 j1="45.0" j2="30.0" j3="15.0"/>
+      <f2 j1="90.0" j2="45.0" j3="0.0"/>
+      <f3 j1="75.0" j2="60.0" j3="0.0"/>
+      <f4 j1="90.0" j2="45.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="53">
+    <hand side="A">
+      <f0 j1="0.0" j2="15.0" j3="60.0"/>
+      <f1 j1="90.0" j2="30.0" j3="30.0"/>
+      <f2 j1="90.0" j2="15.0" j3="60.0"/>
+      <f3 j1="90.0" j2="15.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="54">
+    <hand side="A">
+      <f0 j1="30.0" j2="45.0" j3="0.0"/>
+      <f1 j1="60.0" j2="15.0" j3="15.0"/>
+      <f2 j1="90.0" j2="0.0" j3="0.0"/>
+      <f3 j1="90.0" j2="15.0" j3="0.0"/>
+      <f4 j1="75.0" j2="30.0" j3="0.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="55">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="45.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="90.0" j3="60.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="56">
+    <hand side="A">
+      <f0 j1="15.0" j2="60.0" j3="15.0"/>
+      <f1 j1="60.0" j2="15.0" j3="15.0"/>
+      <f2 j1="90.0" j2="0.0" j3="15.0"/>
+      <f3 j1="90.0" j2="15.0" j3="90.0"/>
+      <f4 j1="90.0" j2="15.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="57">
+    <hand side="A">
+      <f0 j1="0.0" j2="60.0" j3="60.0"/>
+      <f1 j1="90.0" j2="30.0" j3="15.0"/>
+      <f2 j1="90.0" j2="90.0" j3="30.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="58">
+    <hand side="A">
+      <f0 j1="15.0" j2="60.0" j3="30.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="30.0" j3="90.0"/>
+      <f3 j1="90.0" j2="90.0" j3="60.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="59">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="60.0"/>
+      <f1 j1="90.0" j2="15.0" j3="15.0"/>
+      <f2 j1="90.0" j2="90.0" j3="30.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="30.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="60">
+    <hand side="A">
+      <f0 j1="15.0" j2="60.0" j3="30.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="30.0" j3="90.0"/>
+      <f3 j1="90.0" j2="90.0" j3="30.0"/>
+      <f4 j1="90.0" j2="90.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="61">
+    <hand side="A">
+      <f0 j1="0.0" j2="30.0" j3="75.0"/>
+      <f1 j1="90.0" j2="60.0" j3="0.0"/>
+      <f2 j1="90.0" j2="90.0" j3="15.0"/>
+      <f3 j1="90.0" j2="90.0" j3="0.0"/>
+      <f4 j1="90.0" j2="90.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="62">
+    <hand side="A">
+      <f0 j1="15.0" j2="60.0" j3="30.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="30.0" j3="90.0"/>
+      <f3 j1="90.0" j2="90.0" j3="60.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="63">
+    <hand side="A">
+      <f0 j1="0.0" j2="60.0" j3="60.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="90.0" j3="60.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="64">
+    <hand side="A">
+      <f0 j1="15.0" j2="60.0" j3="15.0"/>
+      <f1 j1="60.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="90.0"/>
+      <f3 j1="90.0" j2="45.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="65">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="75.0"/>
+      <f1 j1="75.0" j2="15.0" j3="15.0"/>
+      <f2 j1="90.0" j2="75.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="66">
+    <hand side="A">
+      <f0 j1="15.0" j2="45.0" j3="30.0"/>
+      <f1 j1="60.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="90.0"/>
+      <f3 j1="90.0" j2="45.0" j3="90.0"/>
+      <f4 j1="90.0" j2="45.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="67">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="75.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="75.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="60.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="68">
+    <hand side="A">
+      <f0 j1="15.0" j2="45.0" j3="30.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="90.0"/>
+      <f3 j1="90.0" j2="60.0" j3="90.0"/>
+      <f4 j1="90.0" j2="60.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="69">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="75.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="75.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="30.0"/>
+      <f4 j1="90.0" j2="75.0" j3="75.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="70">
+    <hand side="A">
+      <f0 j1="15.0" j2="45.0" j3="15.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="60.0"/>
+      <f3 j1="90.0" j2="45.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="71">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="75.0"/>
+      <f1 j1="75.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="75.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="72">
+    <hand side="A">
+      <f0 j1="15.0" j2="45.0" j3="15.0"/>
+      <f1 j1="60.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="60.0"/>
+      <f3 j1="90.0" j2="45.0" j3="90.0"/>
+      <f4 j1="90.0" j2="60.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="73">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="75.0"/>
+      <f1 j1="75.0" j2="15.0" j3="15.0"/>
+      <f2 j1="90.0" j2="75.0" j3="60.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="15.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="74">
+    <hand side="A">
+      <f0 j1="15.0" j2="45.0" j3="15.0"/>
+      <f1 j1="60.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="60.0"/>
+      <f3 j1="90.0" j2="30.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="75">
+    <hand side="A">
+      <f0 j1="0.0" j2="45.0" j3="90.0"/>
+      <f1 j1="75.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="60.0" j3="90.0"/>
+      <f3 j1="90.0" j2="90.0" j3="30.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="76">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="15.0"/>
+      <f1 j1="60.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="75.0"/>
+      <f3 j1="90.0" j2="30.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="77">
+    <hand side="A">
+      <f0 j1="0.0" j2="30.0" j3="90.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="60.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="30.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="78">
+    <hand side="A">
+      <f0 j1="15.0" j2="45.0" j3="30.0"/>
+      <f1 j1="60.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="15.0" j3="45.0"/>
+      <f3 j1="90.0" j2="15.0" j3="90.0"/>
+      <f4 j1="90.0" j2="15.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="79">
+    <hand side="A">
+      <f0 j1="0.0" j2="30.0" j3="90.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="75.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="30.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="80">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="30.0"/>
+      <f1 j1="60.0" j2="0.0" j3="0.0"/>
+      <f2 j1="90.0" j2="15.0" j3="45.0"/>
+      <f3 j1="90.0" j2="15.0" j3="90.0"/>
+      <f4 j1="90.0" j2="30.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="81">
+    <hand side="A">
+      <f0 j1="0.0" j2="30.0" j3="90.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="75.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="82">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="30.0"/>
+      <f1 j1="60.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="15.0" j3="45.0"/>
+      <f3 j1="90.0" j2="15.0" j3="90.0"/>
+      <f4 j1="90.0" j2="15.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="83">
+    <hand side="A">
+      <f0 j1="0.0" j2="30.0" j3="90.0"/>
+      <f1 j1="75.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="75.0" j3="75.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="45.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="84">
+    <hand side="A">
+      <f0 j1="15.0" j2="30.0" j3="30.0"/>
+      <f1 j1="60.0" j2="0.0" j3="15.0"/>
+      <f2 j1="90.0" j2="15.0" j3="75.0"/>
+      <f3 j1="90.0" j2="15.0" j3="90.0"/>
+      <f4 j1="90.0" j2="45.0" j3="90.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+  <frame index="85">
+    <hand side="A">
+      <f0 j1="0.0" j2="30.0" j3="90.0"/>
+      <f1 j1="75.0" j2="15.0" j3="0.0"/>
+      <f2 j1="90.0" j2="90.0" j3="60.0"/>
+      <f3 j1="90.0" j2="90.0" j3="15.0"/>
+      <f4 j1="90.0" j2="90.0" j3="30.0"/>
+      <orientation xAngle="" yAngle="" zAngle=""/>
+      <location>
+        <loc x="" y="" z=""/>
+      </location>
+      <movement/>
+    </hand>
+  </frame>
+</sequence>

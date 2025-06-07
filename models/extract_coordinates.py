@@ -68,7 +68,7 @@ def get_coordinates(file_path):
     left_hand_location_by_frame = []
     right_hand_location_by_frame = []
 
-    pose_landmarks = None
+    pose_landmarks_seq = []
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -85,7 +85,8 @@ def get_coordinates(file_path):
         if multi_hands:  # if hand key points are detected
             if len(multi_hands) == 2:
                 for hand_landmarks, handedness in zip(multi_hands, hand_results.multi_handedness):
-                    landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                    landmarks = np.array([[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark])
+                    # landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
                     wrist = landmarks[0]
                     if handedness.classification[0].label == "Left":
                         left_wrist.append(wrist)
@@ -121,37 +122,13 @@ def get_coordinates(file_path):
             right_wrist.append([np.nan, np.nan, np.nan])
             right_hand.append(np.full(21, np.nan))
 
-        # keyframes_left, keyframes_right, midpoints_left, midpoints_right = keyframes_detection_and_notation.process_hand_landmarks(left_wrist, right_wrist)
-
-
-
-        # face detection
-        face_result = face_mesh.process(rgb_frame)
-        if face_result.multi_face_landmarks:
-            for face_landmarks in face_result.multi_face_landmarks:
-                lm = face_landmarks.landmark
-
-
-
-
         # pose detection
-
-
         pose_results = pose.process(rgb_frame)
-        pose_landmarks = pose_results.pose_landmarks.landmark if pose_results.pose_landmarks else None
-
-        if pose_landmarks and multi_hands:
-            for idx, hand_landmarks in enumerate(multi_hands):
-                hand_pos = hand_location.get_hand_position(15 if idx == 0 else 16, pose_landmarks, hand_landmarks.landmark)
-                label = "Left" if idx == 0 else "Right"
-                if hand_pos is not None:
-                    if label == "Left":
-                        left_hand_location_by_frame.append(hand_pos)
-                    else:
-                        right_hand_location_by_frame.append(hand_pos)
+        if pose_results.pose_landmarks:
+            pose_landmarks = pose_results.pose_landmarks.landmark
         else:
-            left_hand_location_by_frame.append(-1)
-            right_hand_location_by_frame.append(-1)
+            pose_landmarks = None
+        pose_landmarks_seq.append(pose_landmarks)  # 不管有没有都 append，占位
 
 
         frame_count += 1
@@ -164,13 +141,32 @@ def get_coordinates(file_path):
     cap.release()
     cv2.destroyAllWindows()
 
-    return left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks
+    return left_hand, right_hand, left_wrist, right_wrist, pose_landmarks_seq
+    # return left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks_seq
+
+def extract_keypoints_from_hand_seq(hand_seq):
+    wrist_seq = []
+    thumb_seq = []
+    index_seq = []
+
+    for landmarks in hand_seq:
+        if isinstance(landmarks, np.ndarray) and landmarks.shape == (21, 3):
+            wrist_seq.append(landmarks[0])   # wrist
+            thumb_seq.append(landmarks[4])   # thumb tip
+            index_seq.append(landmarks[8])   # index tip
+        else:
+            # 补nan（无效帧）
+            wrist_seq.append([np.nan, np.nan, np.nan])
+            thumb_seq.append([np.nan, np.nan, np.nan])
+            index_seq.append([np.nan, np.nan, np.nan])
+
+    return wrist_seq, thumb_seq, index_seq
 
 
 def main():
     file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04797.mp4'
-    left_hand, right_hand, keyframes_left, keyframes_right, midpoints_left, midpoints_right = get_coordinates(file_path)
-    return left_hand, right_hand, keyframes_left, keyframes_right, midpoints_left, midpoints_right
+    left_hand, right_hand, left_wrist, right_wrist, pose_landmarks_seq = get_coordinates(file_path)
+    return left_hand, right_hand, left_wrist, right_wrist, pose_landmarks_seq
 
 if __name__ == '__main__':
     main()

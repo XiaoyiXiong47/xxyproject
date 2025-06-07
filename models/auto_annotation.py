@@ -17,6 +17,7 @@ import keyframes_detection_and_notation
 import hand_rotation
 import hand_location
 import construct_xml
+import os
 
 from sklearn.preprocessing import StandardScaler
 #import pandas as pd
@@ -29,7 +30,7 @@ def parse_args():
     parser.add_argument('--data_path', type=str, required=True,
                         help='The path to the dataset that is being annoted')
     parser.add_argument('--dataset', type=str, required=True, help='The name of the dataset.')
-    parser.add_argument('--gloss', type=str, required=True, help='The gloss of the dataset, will be recognised later')
+    parser.add_argument('--gloss', type=str, required=False, help='The gloss of the dataset, will be recognised later')
     return parser.parse_args()
 
 def diff_in_z(v1, v2):
@@ -220,45 +221,47 @@ def first_time():
         "f3_j1", "f3_j2", "f3_j3",
         "f4_j1", "f4_j2", "f4_j3"
     ]
-    all_angles = []
 
     args = parse_args()
     file_path = args.data_path
     dataset = args.dataset
 
     print(file_path)
-    left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks = extract_coordinates.get_coordinates(file_path)
+    video_name = os.path.splitext(os.path.basename(file_path))[0]
+    print(video_name)
+    left_hand, right_hand, left_wrist, right_wrist, pose_landmarks = extract_coordinates.get_coordinates(file_path)
     print("Coordinates successfully detected!")
     # print("left_hand:", left_hand)
     # print("right_hand:", right_hand)
     # print("left_wrist:", left_wrist)
     # print("right_wrist:", right_wrist)
+    # print("left_hand_location_by_frame:", left_hand_location_by_frame)
 
     left_hand_angles = extract_finger_angles_all_frames(left_hand, joint_triplets)
     right_hand_angles = extract_finger_angles_all_frames(right_hand, joint_triplets)
     # print("left_hand_angles:", left_hand_angles)
     # print("right_hand_angles:", right_hand_angles)
 
+    left_wrist_seq, left_thumb_seq, left_index_seq = extract_coordinates.extract_keypoints_from_hand_seq(left_hand)
+    right_wrist_seq, right_thumb_seq, right_index_seq = extract_coordinates.extract_keypoints_from_hand_seq(right_hand)
 
 
+    left_seg, right_seg, left_mid, right_mid = keyframes_detection_and_notation.process_hand_landmarks(left_wrist, right_wrist,left_hand_angles, right_hand_angles)
 
+    left_location = hand_location.calculate_hand_locations(
+        pose_landmarks, left_hand,
+        left_seg, left_mid
+    )
+    right_location = hand_location.calculate_hand_locations(
+        pose_landmarks, right_hand,
+        right_seg, right_mid
+    )
+    # print("location",left_location)
 
-    # keyframes_left, keyframes_right, midpoints_left, midpoints_right = keyframes_detection_and_notation.process_hand_landmarks(
-    #     left_wrist, right_wrist)
-    #
-    # print("keyframes_left:", keyframes_left)
-    # print("keyframes_right:", keyframes_right)
-    # print("midpoints_left:", midpoints_left)
-    # print("midpoints_right:", midpoints_right)
-    #
-    # review_keyframes(file_path, keyframes_left)
+    left_orientation = hand_rotation.calculate_hand_orientations(left_wrist_seq, left_thumb_seq, left_index_seq, left_seg, left_mid)
+    right_orientation = hand_rotation.calculate_hand_orientations(right_wrist_seq, right_thumb_seq, right_index_seq,  right_seg, right_mid)
 
-    left_seg, right_seg = keyframes_detection_and_notation.process_hand_landmarks(left_wrist, right_wrist,left_hand_angles, right_hand_angles)
-
-
-
-    # construct_xml.generate_xml(all_angles, orientation, pose_landmarks, hand_landmarks,
-    #              left_seg, right_seg, left_mid, right_mid,)
+    print(right_orientation)
 
     cap, video_id = load_video(file_path)
     frame_idx = 0
@@ -276,59 +279,21 @@ def first_time():
     cap.release()
     cv2.destroyAllWindows()
 
-    # left_hand_location_by_frame
-    # for (start, end) in left_seg:
-    #     left_hand_location = hand_location.get_hand_position(start, pose_landmarks, left_hand)
+    gloss = "hehehe"
 
-    # gloss = "hehehe"
-    #
     # for (start, end) in left_seg:
     #     start_hand_landmarks = left_hand[start]
     #     end_hand_landmarks = left_hand[end]
     #     normal, yaw, pitch, roll = hand_rotation.compute_hand_rotation(start_hand_landmarks[0], start_hand_landmarks[5], start_hand_landmarks[17])
+    #     left_hand_location = left_hand_location_by_frame[start]
     #     construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB',
     #                                  movement=None)
+
     #     normal, yaw, pitch, roll = hand_rotation.compute_hand_rotation(end_hand_landmarks[0], end_hand_landmarks[5], end_hand_landmarks[17])
-    #
-    #
+    xml_name = f"../data/annotations/out-{video_name}.xml"
+    construct_xml.generate_xml(left_hand_angles, right_hand_angles, left_orientation, right_orientation, left_location,right_location, left_seg, right_seg, left_mid, right_mid, dataset, gloss, output_path=xml_name)
     # construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB', movement=None)
     #
-
-def try_new_method():
-    joint_triplets = [
-        (0, 1, 2), (1, 2, 3), (2, 3, 4),  # f0 - j1, j2, j3
-        (0, 5, 6), (5, 6, 7), (6, 7, 8),  # f1 - j1, j2, j3
-        (0, 9, 10), (9, 10, 11), (10, 11, 12),  # f2 - j1, j2, j3
-        (0, 13, 14), (13, 14, 15), (14, 15, 16),  # f3 - j1, j2, j3
-        (0, 17, 18), (17, 18, 19), (18, 19, 20),  # f4 - j1, j2, j3
-    ]
-    joint_names = [
-        "f0_j1", "f0_j2", "f0_j3",
-        "f1_j1", "f1_j2", "f1_j3",
-        "f2_j1", "f2_j2", "f2_j3",
-        "f3_j1", "f3_j2", "f3_j3",
-        "f4_j1", "f4_j2", "f4_j3"
-    ]
-    all_angles = []
-
-    args = parse_args()
-    file_path = args.data_path
-    dataset = args.dataset
-
-
-    left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks = extract_coordinates.get_coordinates(file_path)
-    print("Coordinates successfully detected!")
-    print("left_hand:", left_hand)
-    print("right_hand:", right_hand)
-    print("left_wrist:", left_wrist)
-    print("right_wrist:", right_wrist)
-
-    left_hand_angles = extract_finger_angles_all_frames(left_hand, joint_triplets)
-    right_hand_angles = extract_finger_angles_all_frames(right_hand, joint_triplets)
-    print("left_hand_angles:", left_hand_angles)
-    print("right_hand_angles:", right_hand_angles)
-
-
 
 
 def main():

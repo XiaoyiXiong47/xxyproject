@@ -71,7 +71,7 @@ def segment_signs_from_velocity_and_shape(
             prev_shape = current_shape
 
     merged_segments.append((prev_start, prev_end))
-    return merged_segments
+    return merged_segments, keyframes
 
 def detect_pause_then_motion(hand_landmarks, pause_length=5, pause_thresh=0.001, motion_thresh=0.002):
     """
@@ -152,12 +152,12 @@ def interpolate_nan_rows(data):
 def compute_velocity(trajectory):
     # trajectory: Nx3
     diffs = np.diff(trajectory, axis=0)
-    velocity = np.linalg.norm(diffs, axis=1)
-    return velocity
+    #velocity = np.linalg.norm(diffs, axis=1)
+    #return velocity
+    return diffs
 
 
-def smooth_signal(signal, sigma=2):
-    return gaussian_filter1d(signal, sigma=sigma)
+def smooth_signal(signal, sigma=2):    return gaussian_filter1d(signal, sigma=sigma)
 
 
 # -------------------------------
@@ -445,6 +445,8 @@ def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
     """
     left_seg = []
     right_seg = []
+    left_key_frames = []
+    right_key_frames = []
 
     # Process left hand if data is valid
     if isinstance(left_wrist, list) and len(left_wrist) > 0:
@@ -454,7 +456,7 @@ def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
             left_velocity = compute_velocity(left_wrist_trajectory)
             left_velocity_smooth = smooth_signal(left_velocity)
             # print("left_velocity_smooth:", left_velocity_smooth)
-            left_seg = segment_signs_from_velocity_and_shape(left_angles, left_velocity_smooth)
+            left_seg, left_key_frames = segment_signs_from_velocity_and_shape(left_angles, left_velocity_smooth)
             print("left_seg:", left_seg)
         else:
             print(f"[Warning] Invalid left_wrist shape: {left_wrist_array.shape}, skipping left hand processing.")
@@ -469,7 +471,7 @@ def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
             right_velocity = compute_velocity(right_wrist_trajectory)
             right_velocity_smooth = smooth_signal(right_velocity)
             # print("right_velocity_smooth:", right_velocity_smooth)
-            right_seg = segment_signs_from_velocity_and_shape(right_angles, right_velocity_smooth)
+            right_seg, right_key_frames = segment_signs_from_velocity_and_shape(right_angles, right_velocity_smooth)
             # starts = detect_pause_then_motion(right_wrist)
             # print("Detected keyframes after short pauses:", starts)
             print("right_seg:", right_seg)
@@ -478,7 +480,7 @@ def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
     else:
         print("[Info] No right hand data provided.")
 
-    return left_seg, right_seg
+    return left_seg, right_seg, left_key_frames, right_key_frames
 
     # -------------------------------
 
