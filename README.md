@@ -1,16 +1,35 @@
-Install all packages:
+Step 1: Prepare environment
+Install all packages: run the following at /xxyproject/
 `pip install -r requirements.txt`
+Also install requried packages for Siformer at /xxyproject/slr-model/Siformer/
 
 
-Predict gloss:
-run the following under ../SiFormer/
-`python predict.py --model_path out-checkpoints/WLASL100/checkpoint_v_10.pth --csv_path D:\project_codes\xxyproject\uti
-ls\testing_samples.csv`
+Step 2: Predict gloss
+Convert mp4 to csv format: (change `video_directory` or `output_filename` if needed)
+`python ./utils/data_preprocess.py`
+Then, run the following under ./slr-model/Siformer/
+`cd slr-model/Siformer`
+`python predict.py --model_path out-checkpoints/WLASL100/checkpoint_t_10.pth --csv_path ../../data/processed/slr-preprocessed-data.csv`
+The predicted label and corresponding video name will be saved at `../../data/predicted_label/predicted_gloss.csv`
 
+
+Step 3: Automatically annotate
+`cd ../../models` go to /xxyproject/model
 Run annotation script:
-`python ./models/run_all_videos.py`
+`python ./run_all_videos.py`
 which automatically runs the following command for all videos:
 `python ./models/auto_annotation.py --data_path /PATH/TO/DATASET `
 
 
 
+
+
+Siformer was trained by : `python -m train --experiment_name WLASL100v3 --training_set_path datasets/wlasl100_train_v3.csv --validation_set_path datasets/wlasl100_val_v3.csv --validation_set from-file --num_classes 100 
+--num_worker 4`
+
+
+
+
+WLASL_v0.3.json contains 2000 words.
+xxyproject/data/raw/videos contain 11980 videos.
+Video with the most number of frames: 03156.mp4, the number of frames is: 233 (Within 11980 videos)

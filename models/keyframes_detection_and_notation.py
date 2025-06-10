@@ -14,7 +14,7 @@ import extract_coordinates
 from typing import List, Tuple
 from scipy.spatial.distance import cosine
 
-def is_same_shape(angle1: np.ndarray, angle2: np.ndarray, threshold: float = 0.95) -> bool:
+def is_same_shape(angle1: np.ndarray, angle2: np.ndarray, threshold: float = 0.90) -> bool:
     """比较两个角度向量是否表示相似的手型"""
     similarity = 1 - cosine(angle1, angle2)
     return similarity > threshold
@@ -23,7 +23,7 @@ def is_same_shape(angle1: np.ndarray, angle2: np.ndarray, threshold: float = 0.9
 def segment_signs_from_velocity_and_shape(
         angles: List[np.ndarray],  # 每帧的手指角度向量
         velocity: np.ndarray  # 速度序列（已平滑）
-    ) -> List[Tuple[int, int]]:
+    ) -> Tuple[List[Tuple[int, int]], List[int]]:
     """
     基于速度极小值分段，并合并角度相似的段
     :param angles: 每帧的手型角度向量（shape=(n_frames, n_dims)）
@@ -37,7 +37,7 @@ def segment_signs_from_velocity_and_shape(
         minima = argrelextrema(v, np.less, order=3)[0]
         return minima.tolist()
 
-    def merge_close_keyframes(keyframes, min_gap=3):
+    def merge_close_keyframes(keyframes, min_gap=5):
         if not keyframes:
             return []
         merged = [keyframes[0]]
@@ -46,8 +46,12 @@ def segment_signs_from_velocity_and_shape(
                 merged.append(kf)
         return merged
 
+    if angles is None or len(angles) == 0 or np.size(angles) == 0:
+        return [], []
+    if velocity is None or len(velocity) == 0 or np.size(velocity) == 0:
+        return [], []
     keyframes = find_velocity_minima(velocity)
-    keyframes = merge_close_keyframes(sorted(set(keyframes)), min_gap=3)
+    keyframes = merge_close_keyframes(sorted(set(keyframes)), min_gap=5)
     print("keyframes:", keyframes)
     # 第二步：生成 segments
     segments = [(keyframes[i], keyframes[i + 1]) for i in range(len(keyframes) - 1)]
@@ -56,7 +60,7 @@ def segment_signs_from_velocity_and_shape(
     # 第三步：按手型相似性合并段
     merged_segments = []
     if not segments:
-        return merged_segments
+        return merged_segments, keyframes
 
     prev_start, prev_end = segments[0]
     prev_shape = np.mean(angles[prev_start:prev_end], axis=0)
@@ -414,23 +418,6 @@ def plot_keyframes(leftorright, trajectory, keyframes):
 # 主函数封装
 # -------------------------------
 
-def detect_keyframes_using_multi_indicators(left_wrist, right_wrist, left_angles, right_angles, left_normal, right_normal):
-    """
-
-    :param left_wrist:
-    :param right_wrist:
-    :param left_angles:
-    :param right_angles:
-    :param left_normal:
-    :param right_normal:
-    :return:
-    """
-
-    left_seg = []
-    right_seg = []
-    left_mid = []
-    right_mid = []
-    return left_seg, right_seg, left_mid, right_mid
 
 
 def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
@@ -443,10 +430,9 @@ def process_hand_landmarks(left_wrist, right_wrist, left_angles, right_angles):
     :param right_angles: 每一帧的手指角度特征
     :return:
     """
-    left_seg = []
-    right_seg = []
-    left_key_frames = []
-    right_key_frames = []
+    left_seg, left_key_frames = [], []
+    right_seg, right_key_frames = [], []
+
 
     # Process left hand if data is valid
     if isinstance(left_wrist, list) and len(left_wrist) > 0:

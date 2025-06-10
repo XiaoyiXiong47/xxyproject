@@ -292,34 +292,123 @@ def extract_video_keypoints(video_path, label, target_length=204, fill_value=0):
     frame_data.update(video_row)
     return frame_data
 
-def generate_wlasl_csv(video_dir, output_csv="wlasl_output.csv"):
-    """Process all videos and generate CSV with one row per video"""
+
+def load_gloss_to_label_map(label_txt_path):
+    """从 WLASL100labels.txt 加载 gloss -> label_id（int）"""
+    gloss2label = {}
+    with open(label_txt_path, "r", encoding="utf-8") as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) == 2:
+                label_id, gloss = parts
+                gloss2label[gloss] = int(label_id)
+    return gloss2label
+
+
+def load_video_to_gloss_map(json_path, valid_gloss_set=None):
+    """从 WLASL_v0.3.json 加载 video_id -> gloss 映射"""
+    import json
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    video2gloss = {}
+    for entry in data:
+        gloss = entry["gloss"]
+        if valid_gloss_set and gloss not in valid_gloss_set:
+            continue
+        for inst in entry["instances"]:
+            video_id = inst["video_id"]
+            video2gloss[video_id] = gloss
+    return video2gloss
+
+
+# def generate_wlasl_csv(video_dir, output_csv="wlasl_output.csv"):
+#     """处理所有视频并生成 CSV，每个视频一行，包含 keypoints + label"""
+#     all_data = []
+#
+#     # 读取映射
+#     gloss2label = load_gloss_to_label_map("..\WLASL100labels.txt")
+#     video2gloss = load_video_to_gloss_map("..\WLASL_v0.3.json", valid_gloss_set=gloss2label.keys())
+#
+#     # 收集视频文件
+#     video_extensions = ('.mp4', '.avi', '.mov', '.mkv')
+#     video_files = [f for f in os.listdir(video_dir) if f.lower().endswith(video_extensions)]
+#
+#     for video_file in tqdm(video_files, desc="Extracting keypoints"):
+#         video_path = os.path.join(video_dir, video_file)
+#         video_id = os.path.splitext(video_file)[0]
+#
+#         gloss = video2gloss.get(video_id)
+#         if gloss is None:
+#             print(f"⚠️ 未在 JSON 中找到 gloss: {video_id}")
+#             continue
+#
+#         label_id = gloss2label.get(gloss)
+#         if label_id is None:
+#             print(f"⚠️ 未在 labels.txt 中找到 label: {gloss}")
+#             continue
+#
+#         try:
+#             video_row = extract_video_keypoints(video_path, label_id)
+#             all_data.append(video_row)
+#         except Exception as e:
+#             print(f"❌ Error processing {video_file}: {str(e)}")
+#             continue
+#
+#     # 写入 CSV
+#     final_df = pd.DataFrame(all_data, columns=CSV_COLUMNS)
+#     final_df.to_csv(output_csv, index=False)
+#     print(f"\n✅ 成功处理 {len(all_data)} 个视频，已保存到 {output_csv}")
+
+
+def generate_wlasl_csv_multi(split_dirs, output_csv="wlasl_output.csv"):
+    """处理多个 split 下的视频并合并成一个大 CSV"""
     all_data = []
 
-    # Get all video files with common extensions
-    video_extensions = ('.mp4', '.avi', '.mov', '.mkv')
-    video_files = [f for f in os.listdir(video_dir) if f.lower().endswith(video_extensions)]
+    # 加载映射
+    gloss2label = load_gloss_to_label_map("..\WLASL100labels.txt")
+    video2gloss = load_video_to_gloss_map("..\WLASL_v0.3.json", valid_gloss_set=gloss2label.keys())
 
-    for video_file in tqdm(video_files, desc="Processing videos"):
-        video_path = os.path.join(video_dir, video_file)
-        label = os.path.splitext(video_file)[0].split('_')[0]  # Extract label from filename
-        try:
-            video_row = extract_video_keypoints(video_path, label)
-            all_data.append(video_row)
-        except Exception as e:
-            print(f"Error processing {video_file}: {str(e)}")
-            continue
+    for split_dir in split_dirs:
+        print(f"\n📂 正在处理目录: {split_dir}")
+        video_extensions = ('.mp4', '.avi', '.mov', '.mkv')
+        video_files = [f for f in os.listdir(split_dir) if f.lower().endswith(video_extensions)]
 
-    # Create DataFrame from all video rows
+        for video_file in tqdm(video_files, desc=f"Processing {os.path.basename(split_dir)}"):
+            video_path = os.path.join(split_dir, video_file)
+            video_id = os.path.splitext(video_file)[0]
+
+            gloss = video2gloss.get(video_id)
+            if gloss is None:
+                print(f"⚠️ 未在 JSON 中找到 gloss: {video_id}")
+                continue
+
+            label_id = gloss2label.get(gloss)
+            if label_id is None:
+                print(f"⚠️ 未在 labels.txt 中找到 label: {gloss}")
+                continue
+
+            try:
+                video_row = extract_video_keypoints(video_path, label_id)
+                all_data.append(video_row)
+            except Exception as e:
+                print(f"❌ Error processing {video_file}: {str(e)}")
+                continue
+
+    # 写入合并的 CSV
     final_df = pd.DataFrame(all_data, columns=CSV_COLUMNS)
-
-    # Save to CSV
     final_df.to_csv(output_csv, index=False)
-    print(f"\nSuccessfully processed {len(all_data)} videos. CSV saved to: {output_csv}")
+    print(f"\n✅ 成功处理 {len(all_data)} 个视频，已保存为: {output_csv}")
 
 # Example usage
 if __name__ == "__main__":
-    video_directory = "D:\project_codes\WLASL\start_kit\sample_videos_100"  # Change to your video directory
-    output_filename = "..\data\processed\slr-preprocessed-data.csv"
-    generate_wlasl_csv(video_directory, output_filename)
+    # video_directory = r"..\data\raw\WLASL100\train"  # Change to your video directory
+    # output_filename = "..\slr-model\Siformer\datasets\wlasl100_train_v2.csv"
+    # generate_wlasl_csv(video_directory, output_filename)
+    #
+    base_dir = r"..\data\raw\WLASL100"
+    splits = ["train", "val", "test"]
+    split_dirs = [os.path.join(base_dir, s) for s in splits]
 
+    output_csv = "..\slr-model\Siformer\datasets\wlasl100_full.csv"
+    generate_wlasl_csv_multi(split_dirs, output_csv)

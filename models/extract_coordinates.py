@@ -77,66 +77,44 @@ def get_coordinates(file_path):
 
         # convert to RGB
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # hand detection
-        hand_results = hands.process(rgb_frame)
-        multi_hands = hand_results.multi_hand_landmarks
+
         # frame append
         frames.append(rgb_frame)
-        if multi_hands:  # if hand key points are detected
-            if len(multi_hands) == 2:
-                for hand_landmarks, handedness in zip(multi_hands, hand_results.multi_handedness):
-                    landmarks = np.array([[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark])
-                    # landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
-                    wrist = landmarks[0]
-                    if handedness.classification[0].label == "Left":
-                        left_wrist.append(wrist)
-                        left_hand.append(landmarks)
-                        # current_left_right["left"] = landmarks
-                    elif handedness.classification[0].label == "Right":
-                        right_wrist.append(wrist)
-                        right_hand.append(landmarks)
-                        # current_left_right["right"] = landmarks
-                    # draw hand landmarks
-                    mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks)
-            elif len(multi_hands) == 1:
-                hand_landmarks = multi_hands[0]
-                handedness = hand_results.multi_handedness[0]
-                landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
-                wrist = landmarks[0]
-                if handedness.classification[0].label == "Left":
-                    left_wrist.append(wrist)
-                    left_hand.append(landmarks)
-                    right_wrist.append([np.nan, np.nan, np.nan])
-                    right_hand.append(np.full(21, np.nan))
-                elif handedness.classification[0].label == "Right":
-                    right_wrist.append(wrist)
-                    right_hand.append(landmarks)
-                    left_wrist.append([np.nan, np.nan, np.nan])
-                    left_hand.append(np.full(21, np.nan))
-                # # draw hand landmarks
-                # mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, hands.HAND_CONNECTIONS)
-        else:
-        #     hand not detected at current frame, insert with [np.nan, np.nan, np.nan]
-            left_wrist.append([np.nan, np.nan, np.nan])
-            left_hand.append(np.full(21, np.nan))
-            right_wrist.append([np.nan, np.nan, np.nan])
-            right_hand.append(np.full(21, np.nan))
+
+
+        curr_left_hand = np.full((21, 3), np.nan)
+        curr_right_hand = np.full((21, 3), np.nan)
+        curr_left_wrist = np.full(3, np.nan)
+        curr_right_wrist = np.full(3, np.nan)
+        curr_pose = None
 
         # pose detection
         pose_results = pose.process(rgb_frame)
         if pose_results.pose_landmarks:
-            pose_landmarks = pose_results.pose_landmarks.landmark
-        else:
-            pose_landmarks = None
-        pose_landmarks_seq.append(pose_landmarks)  # 不管有没有都 append，占位
+            curr_pose = pose_results.pose_landmarks.landmark
 
+        # hand detection
+        hand_results = hands.process(rgb_frame)
+        multi_hands = hand_results.multi_hand_landmarks
+
+        if multi_hands:  # if hand key points are detected
+            for hand_landmarks, handedness in zip(multi_hands, hand_results.multi_handedness):
+                landmarks = np.array([[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark])
+                wrist = landmarks[0]  # wrist 是 landmarks[0]
+                if handedness.classification[0].label == "Left":
+                    curr_left_hand = landmarks
+                    curr_left_wrist = wrist
+                elif handedness.classification[0].label == "Right":
+                    curr_right_hand = landmarks
+                    curr_right_wrist = wrist
+
+        left_hand.append(curr_left_hand)
+        right_hand.append(curr_right_hand)
+        left_wrist.append(curr_left_wrist)
+        right_wrist.append(curr_right_wrist)
+        pose_landmarks_seq.append(curr_pose)
 
         frame_count += 1
-
-        # # show result
-        # cv2.imshow(video_id, frame)
-        # if cv2.waitKey(100) & 0xFF == ord('q'):
-        #     break
 
     cap.release()
     cv2.destroyAllWindows()

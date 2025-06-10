@@ -6,11 +6,8 @@ Date: 04/03/2025
 import argparse
 import cv2
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
 import numpy as np
 import matplotlib.pyplot as plt
-import xml.etree.ElementTree as ET
 from scipy.spatial.transform import Rotation as R
 import extract_coordinates
 import keyframes_detection_and_notation
@@ -19,18 +16,12 @@ import hand_location
 import construct_xml
 import os
 
-from sklearn.preprocessing import StandardScaler
-#import pandas as pd
-import xml.dom.minidom as minidom
-
-#from utils import preprocess
-
 def parse_args():
     parser = argparse.ArgumentParser(description="参数解析函数示例")
-    parser.add_argument('--data_path', type=str, required=True,
+    parser.add_argument('--video_path', type=str, required=True,
                         help='The path to the dataset that is being annoted')
     parser.add_argument('--dataset', type=str, required=True, help='The name of the dataset.')
-    parser.add_argument('--gloss', type=str, required=False, help='The gloss of the dataset, will be recognised later')
+    # parser.add_argument('--gloss', type=str, required=False, help='The gloss of the dataset, will be recognised later')
     return parser.parse_args()
 
 def diff_in_z(v1, v2):
@@ -223,18 +214,19 @@ def first_time():
     ]
 
     args = parse_args()
-    file_path = args.data_path
+    video_path = args.video_path
     dataset = args.dataset
 
-    print(file_path)
-    video_name = os.path.splitext(os.path.basename(file_path))[0]
+    # print(file_path)
+    video_name = os.path.splitext(os.path.basename(video_path))[0]
     print(video_name)
-    left_hand, right_hand, left_wrist, right_wrist, pose_landmarks = extract_coordinates.get_coordinates(file_path)
+    output_path = os.path.join('../data/processed/video_with_frame_id', 'frame'+video_name+'.mp4')
+    print(output_path)
+    left_hand, right_hand, left_wrist, right_wrist, pose_landmarks = extract_coordinates.get_coordinates(video_path)
     print("Coordinates successfully detected!")
-    # print("left_hand:", left_hand)
-    # print("right_hand:", right_hand)
-    # print("left_wrist:", left_wrist)
-    # print("right_wrist:", right_wrist)
+    # print("len(left_hand):", len(left_hand))
+    # print("len(right_hand):", len(right_hand))
+    # print("len(pose_landmarks):", len(pose_landmarks))
     # print("left_hand_location_by_frame:", left_hand_location_by_frame)
 
     left_hand_angles = extract_finger_angles_all_frames(left_hand, joint_triplets)
@@ -250,20 +242,29 @@ def first_time():
 
     left_location = hand_location.calculate_hand_locations(
         pose_landmarks, left_hand,
-        left_seg, left_mid
+        left_seg, left_mid, is_left_hand=True
     )
     right_location = hand_location.calculate_hand_locations(
         pose_landmarks, right_hand,
-        right_seg, right_mid
+        right_seg, right_mid, is_left_hand=False
     )
-    # print("location",left_location)
+    # print("left_location",left_location)
+    # print("right_location", right_location)
 
     left_orientation = hand_rotation.calculate_hand_orientations(left_wrist_seq, left_thumb_seq, left_index_seq, left_seg, left_mid)
     right_orientation = hand_rotation.calculate_hand_orientations(right_wrist_seq, right_thumb_seq, right_index_seq,  right_seg, right_mid)
 
-    print(right_orientation)
+    # print(right_orientation)
 
-    cap, video_id = load_video(file_path)
+    cap, video_id = load_video(video_path)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    # 设置编码器并创建 VideoWriter 对象
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 或使用 'XVID'
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    if not out.isOpened():
+        print("Failed to open VideoWriter!")
     frame_idx = 0
     while cap.isOpened():
         ret, frame = cap.read()
@@ -272,14 +273,17 @@ def first_time():
         cv2.putText(frame, f"Frame: {frame_idx}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         # show result
-        cv2.imshow(video_id, frame)
-        if cv2.waitKey(200) & 0xFF == ord('q'):
-            break
+        out.write(frame)
+        #
+        # cv2.imshow(video_id, frame)
+        # if cv2.waitKey(200) & 0xFF == ord('q'):
+        #     break
         frame_idx+=1
     cap.release()
+    out.release()
     cv2.destroyAllWindows()
 
-    gloss = "hehehe"
+    gloss = "N/A"
 
     # for (start, end) in left_seg:
     #     start_hand_landmarks = left_hand[start]
@@ -298,7 +302,7 @@ def first_time():
 
 def main():
     args = parse_args()
-    file_path = args.data_path
+    video_path = args.video_path
     dataset = args.dataset
     # Windows path
     # file_path = r'D:\project_codes\WLASL\start_kit\raw_videos\04593.mp4'      # only left hand detected
@@ -308,7 +312,7 @@ def main():
 
     # MacOS path
     # file_path = '/Users/xiongxiaoyi/Downloads/demo/04854.mp4'
-    cap, video_id = load_video(file_path)
+    cap, video_id = load_video(video_path)
 
     # Get video frame rate
     fps = cap.get(cv2.CAP_PROP_FPS)
