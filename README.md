@@ -6,11 +6,11 @@ Also install requried packages for Siformer at /xxyproject/slr-model/Siformer/
 
 Step 2: Predict gloss
 Convert mp4 to csv format: (change `video_directory` or `output_filename` if needed)
-`python ./utils/data_preprocess.py`
+`python D:\project_codes\xxyproject\utils\data_preprocess.py`
 Then, run the following under ./slr-model/Siformer/
 `cd slr-model/Siformer`
-`python predict.py --model_path out-checkpoints/WLASL100/checkpoint_t_10.pth --csv_path ../../data/processed/slr-preprocessed-data.csv`
-The predicted label and corresponding video name will be saved at `../../data/predicted_label/predicted_gloss.csv`
+`python D:\project_codes\xxyproject\slr-model\Siformer\predict.py --model_path D:\project_codes\xxyproject\slr-model\Siformer\out-checkpoints/WLASL100v3/checkpoint_t_10.pth --csv_path D:\project_codes\xxyproject\slr-model\Siformer\datasets\processed_testing.csv`
+The predicted label and corresponding video name will be saved at `D:\project_codes\xxyproject\data\predicted_label\predicted_gloss.csv`
 
 
 Step 3: Automatically annotate

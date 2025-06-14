@@ -8,14 +8,27 @@ import mediapipe as mp
 
 
 # 坐标轴转换函数
-def convert_axes(hand_coord, ref_coord, flip_x=False):
-    z = hand_coord[2] - ref_coord[2]  # 向前为正（z反转）
-    x = -(hand_coord[0] - ref_coord[0])  if flip_x else (hand_coord[0] - ref_coord[0]) # 向左为正 (x反转)
-    y = hand_coord[1] - ref_coord[1] # 向下为正
+def convert_axes(hand_coord, ref_coord, is_left_hand=False):
+    """
+    Convert 3D hand coordinates to relative position based on a reference point,
+    aligned with a hand-specific coordinate system:
+
+    - x: right is positive (flip if left hand)
+    - y: up is positive (MediaPipe y is downward, so we flip)
+    - z: forward is positive (MediaPipe z is depth, closer to camera = larger z)
+
+    :param hand_coord: [x, y, z] of hand (e.g. wrist or index MCP)
+    :param ref_coord:  reference coordinate (e.g. shoulder center)
+    :param flip_x:     whether to flip the x-direction (use True for left hand)
+    """
+
+    x = -(hand_coord[0] - ref_coord[0])  if is_left_hand else (hand_coord[0] - ref_coord[0]) # x flips for left hand
+    y = -(hand_coord[1] - ref_coord[1])  # upward is positive
+    z = -(hand_coord[2] - ref_coord[2])  # forward is positive
     return np.array([x, y, z])
 
 
-def get_hand_position(pose_landmarks, hand_landmarks, is_left_hand):
+def get_hand_position(pose_landmarks, hand_landmarks, is_left_hand=False):
     """
     Calculate the hand position relative to the center of the shoulders,
     scaled by palm length (half of shoulder width), and rounded to the nearest 50 units.
@@ -38,49 +51,37 @@ def get_hand_position(pose_landmarks, hand_landmarks, is_left_hand):
     ])
     shoulder_mid = (shoulder_left + shoulder_right) / 2 # middle point of two shoulders
 
-    index_mcp = hand_landmarks[5]
+    wrist = hand_landmarks[0]
     hand_pos = np.array([
-        index_mcp[0],
-        index_mcp[1],
-        index_mcp[2]
+        wrist[0],
+        wrist[1],
+        wrist[2]
     ])
 
     # 坐标轴转换（默认以摄像头为正面）
-    relative_pos = convert_axes(hand_pos, shoulder_mid, flip_x=is_left_hand)
+    relative_pos = convert_axes(hand_pos, shoulder_mid, is_left_hand=is_left_hand)
 
-    # 使用肩宽的一半作为单位手掌长度
+    # 使用肩宽1/5作为单位手掌长度
     shoulder_distance = np.linalg.norm(shoulder_left - shoulder_right)
-    if shoulder_distance == 0:
-        return [np.nan, np.nan, np.nan]
-    palm_length = shoulder_distance / 2
+    if shoulder_distance == 0 or np.isnan(shoulder_distance):
+        return np.array([0, 0, 0], dtype=int)
+    palm_length = shoulder_distance / 5
 
-    scale = 100 / palm_length
-    scaled = relative_pos * scale
-    # scaled = hand_pos * scale
+    normalized = relative_pos / palm_length
+    if np.any(np.isnan(normalized)):
+        return np.array([0, 0, 0], dtype=int)
+    scaled = normalized * 100
     rounded = np.round(scaled / 50) * 50
-    return rounded.astype(int)    # 坐标轴转换（默认以摄像头为正面）
-    # relative_pos = convert_axes(hand_pos, shoulder_mid)
-    #
-    # # 使用肩宽的一半作为单位手掌长度
-    # shoulder_distance = np.linalg.norm(shoulder_left - shoulder_right)
-    # if shoulder_distance == 0:
-    #     return [np.nan, np.nan, np.nan]
-    # palm_length = shoulder_distance / 2
-    #
-    # scale = 100 / palm_length
-    # scaled = relative_pos * scale
-    # rounded = np.round(scaled / 50) * 50
-    # return rounded.astype(int)
+    return np.nan_to_num(rounded, nan=0.0).astype(int)
 
 
 
 def calculate_hand_locations(
     pose_landmarks_seq, hand_landmarks_seq,
-    keyframes, midpoints, is_left_hand
+    is_left_hand
 ):
     """
-    根据给定帧序列（pose + hand landmarks）只在关键帧和中点帧上计算手的位置。
-    其他帧填充 [np.nan]。
+    根据给定帧序列（pose + hand landmarks）计算手的位置。
 
     :param hand_index: 要获取的位置关键点索引（通常是15或16）
     :param pose_landmarks_seq: pose landmarks 每帧列表
@@ -89,16 +90,11 @@ def calculate_hand_locations(
     :param midpoints: set 或 list，表示中间帧
     :return: hand_location_by_frame: list，每帧为[rel_x, rel_y, rel_z]或[np.nan]
     """
-    # valid_frames = set(keyframes).union(midpoints)
-    valid_frames = set(midpoints) | {f for pair in keyframes for f in pair}
-    # print("Valid frames:", valid_frames)
-
     hand_location_by_frame = []
     for i in range(len(hand_landmarks_seq)):
         pose_lms = pose_landmarks_seq[i]
         hand_lms = hand_landmarks_seq[i]
-        # print(
-        #     f"Frame {i}: pose_lms is None? {pose_lms is None}, hand_lms length: {len(hand_lms) if isinstance(hand_lms, list) else 'N/A'}")
+
         if pose_lms and isinstance(hand_lms, np.ndarray) and len(hand_lms) == 21:
             try:
                 loc = get_hand_position(pose_lms, hand_lms, is_left_hand)

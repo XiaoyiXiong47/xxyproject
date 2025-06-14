@@ -8,50 +8,382 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.spatial.transform import Rotation as R
 import extract_coordinates
 import keyframes_detection_and_notation
 import hand_rotation
 import hand_location
 import construct_xml
 import os
+import subprocess
+import json
 
+import cv2
+import mediapipe as mp
+import pandas as pd
+import os
+from tqdm import tqdm
+import argparse
+
+#
+# # Initialize MediaPipe models
+# mp_holistic = mp.solutions.holistic
+# mp_hands = mp.solutions.hands
+# mp_pose = mp.solutions.pose
+#
+# # Define CSV columns (complete WLASL format)
+# CSV_COLUMNS = [
+#     # Left hand index finger
+#     "indexDIP_left_X", "indexDIP_left_Y",
+#     "indexDIP_right_X", "indexDIP_right_Y",
+#     "indexMCP_left_X", "indexMCP_left_Y",
+#     "indexMCP_right_X", "indexMCP_right_Y",
+#     "indexPIP_left_X", "indexPIP_left_Y",
+#     "indexPIP_right_X", "indexPIP_right_Y",
+#     "indexTip_left_X", "indexTip_left_Y",
+#     "indexTip_right_X", "indexTip_right_Y",
+#
+#     # Label
+#     "labels",
+#
+#     # Body landmarks (left)
+#     "leftEar_X", "leftEar_Y",
+#     "leftElbow_X", "leftElbow_Y",
+#     "leftEye_X", "leftEye_Y",
+#     "leftShoulder_X", "leftShoulder_Y",
+#     "leftWrist_X", "leftWrist_Y",
+#
+#     # Left hand little finger
+#     "littleDIP_left_X", "littleDIP_left_Y",
+#     "littleDIP_right_X", "littleDIP_right_Y",
+#     "littleMCP_left_X", "littleMCP_left_Y",
+#     "littleMCP_right_X", "littleMCP_right_Y",
+#     "littlePIP_left_X", "littlePIP_left_Y",
+#     "littlePIP_right_X", "littlePIP_right_Y",
+#     "littleTip_left_X", "littleTip_left_Y",
+#     "littleTip_right_X", "littleTip_right_Y",
+#
+#     # Left hand middle finger
+#     "middleDIP_left_X", "middleDIP_left_Y",
+#     "middleDIP_right_X", "middleDIP_right_Y",
+#     "middleMCP_left_X", "middleMCP_left_Y",
+#     "middleMCP_right_X", "middleMCP_right_Y",
+#     "middlePIP_left_X", "middlePIP_left_Y",
+#     "middlePIP_right_X", "middlePIP_right_Y",
+#     "middleTip_left_X", "middleTip_left_Y",
+#     "middleTip_right_X", "middleTip_right_Y",
+#
+#     # Neck and nose
+#     "neck_X", "neck_Y",
+#     "nose_X", "nose_Y",
+#
+#     # Body landmarks (right)
+#     "rightEar_X", "rightEar_Y",
+#     "rightElbow_X", "rightElbow_Y",
+#     "rightEye_X", "rightEye_Y",
+#     "rightShoulder_X", "rightShoulder_Y",
+#     "rightWrist_X", "rightWrist_Y",
+#
+#     # Left hand ring finger
+#     "ringDIP_left_X", "ringDIP_left_Y",
+#     "ringDIP_right_X", "ringDIP_right_Y",
+#     "ringMCP_left_X", "ringMCP_left_Y",
+#     "ringMCP_right_X", "ringMCP_right_Y",
+#     "ringPIP_left_X", "ringPIP_left_Y",
+#     "ringPIP_right_X", "ringPIP_right_Y",
+#     "ringTip_left_X", "ringTip_left_Y",
+#     "ringTip_right_X", "ringTip_right_Y",
+#
+#     # Root position
+#     "root_X", "root_Y",
+#
+#     # Left hand thumb
+#     "thumbCMC_left_X", "thumbCMC_left_Y",
+#     "thumbCMC_right_X", "thumbCMC_right_Y",
+#     "thumbIP_left_X", "thumbIP_left_Y",
+#     "thumbIP_right_X", "thumbIP_right_Y",
+#     "thumbMP_left_X", "thumbMP_left_Y",
+#     "thumbMP_right_X", "thumbMP_right_Y",
+#     "thumbTip_left_X", "thumbTip_left_Y",
+#     "thumbTip_right_X", "thumbTip_right_Y",
+#
+#     # Video info
+#     "video_fps", "video_size_height", "video_size_width",
+#
+#     # Wrists
+#     "wrist_left_X", "wrist_left_Y",
+#     "wrist_right_X", "wrist_right_Y"
+# ]
+#
+# def extract_video_keypoints(video_path, label, target_length=204, fill_value=0):
+#     """Extract and aggregate keypoints for an entire video into one row"""
+#     cap = cv2.VideoCapture(video_path)
+#     fps = cap.get(cv2.CAP_PROP_FPS)
+#     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+#     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+#
+#     # Initialize storage for all frames' keypoints
+#     frame_data = {col: [] for col in CSV_COLUMNS if col not in ['labels', 'video_fps', 'video_size_height', 'video_size_width']}
+#
+#     with mp_holistic.Holistic(
+#         static_image_mode=False,
+#         model_complexity=2,
+#         refine_face_landmarks=True
+#     ) as holistic:
+#
+#         while cap.isOpened():
+#             ret, frame = cap.read()
+#             if not ret:
+#                 break
+#
+#             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#             results = holistic.process(frame_rgb)
+#
+#             # Initialize current frame keypoints with zeros
+#             keypoints = {k: 0.0 for k in frame_data.keys()}
+#
+#             # Process left hand landmarks
+#             if results.left_hand_landmarks:
+#                 left_hand = results.left_hand_landmarks.landmark
+#
+#                 # Index finger
+#                 keypoints["indexDIP_left_X"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_DIP].x
+#                 keypoints["indexDIP_left_Y"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_DIP].y
+#                 keypoints["indexMCP_left_X"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
+#                 keypoints["indexMCP_left_Y"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
+#                 keypoints["indexPIP_left_X"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_PIP].x
+#                 keypoints["indexPIP_left_Y"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_PIP].y
+#                 keypoints["indexTip_left_X"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_TIP].x
+#                 keypoints["indexTip_left_Y"] = left_hand[mp_hands.HandLandmark.INDEX_FINGER_TIP].y
+#
+#                 # Little finger
+#                 keypoints["littleDIP_left_X"] = left_hand[mp_hands.HandLandmark.PINKY_DIP].x
+#                 keypoints["littleDIP_left_Y"] = left_hand[mp_hands.HandLandmark.PINKY_DIP].y
+#                 keypoints["littleMCP_left_X"] = left_hand[mp_hands.HandLandmark.PINKY_MCP].x
+#                 keypoints["littleMCP_left_Y"] = left_hand[mp_hands.HandLandmark.PINKY_MCP].y
+#                 keypoints["littlePIP_left_X"] = left_hand[mp_hands.HandLandmark.PINKY_PIP].x
+#                 keypoints["littlePIP_left_Y"] = left_hand[mp_hands.HandLandmark.PINKY_PIP].y
+#                 keypoints["littleTip_left_X"] = left_hand[mp_hands.HandLandmark.PINKY_TIP].x
+#                 keypoints["littleTip_left_Y"] = left_hand[mp_hands.HandLandmark.PINKY_TIP].y
+#
+#                 # Middle finger
+#                 keypoints["middleDIP_left_X"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_DIP].x
+#                 keypoints["middleDIP_left_Y"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_DIP].y
+#                 keypoints["middleMCP_left_X"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x
+#                 keypoints["middleMCP_left_Y"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
+#                 keypoints["middlePIP_left_X"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].x
+#                 keypoints["middlePIP_left_Y"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].y
+#                 keypoints["middleTip_left_X"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].x
+#                 keypoints["middleTip_left_Y"] = left_hand[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y
+#
+#                 # Ring finger
+#                 keypoints["ringDIP_left_X"] = left_hand[mp_hands.HandLandmark.RING_FINGER_DIP].x
+#                 keypoints["ringDIP_left_Y"] = left_hand[mp_hands.HandLandmark.RING_FINGER_DIP].y
+#                 keypoints["ringMCP_left_X"] = left_hand[mp_hands.HandLandmark.RING_FINGER_MCP].x
+#                 keypoints["ringMCP_left_Y"] = left_hand[mp_hands.HandLandmark.RING_FINGER_MCP].y
+#                 keypoints["ringPIP_left_X"] = left_hand[mp_hands.HandLandmark.RING_FINGER_PIP].x
+#                 keypoints["ringPIP_left_Y"] = left_hand[mp_hands.HandLandmark.RING_FINGER_PIP].y
+#                 keypoints["ringTip_left_X"] = left_hand[mp_hands.HandLandmark.RING_FINGER_TIP].x
+#                 keypoints["ringTip_left_Y"] = left_hand[mp_hands.HandLandmark.RING_FINGER_TIP].y
+#
+#                 # Thumb
+#                 keypoints["thumbCMC_left_X"] = left_hand[mp_hands.HandLandmark.THUMB_CMC].x
+#                 keypoints["thumbCMC_left_Y"] = left_hand[mp_hands.HandLandmark.THUMB_CMC].y
+#                 keypoints["thumbIP_left_X"] = left_hand[mp_hands.HandLandmark.THUMB_IP].x
+#                 keypoints["thumbIP_left_Y"] = left_hand[mp_hands.HandLandmark.THUMB_IP].y
+#                 keypoints["thumbMP_left_X"] = left_hand[mp_hands.HandLandmark.THUMB_MCP].x
+#                 keypoints["thumbMP_left_Y"] = left_hand[mp_hands.HandLandmark.THUMB_MCP].y
+#                 keypoints["thumbTip_left_X"] = left_hand[mp_hands.HandLandmark.THUMB_TIP].x
+#                 keypoints["thumbTip_left_Y"] = left_hand[mp_hands.HandLandmark.THUMB_TIP].y
+#
+#                 # Left wrist
+#                 keypoints["wrist_left_X"] = left_hand[mp_hands.HandLandmark.WRIST].x
+#                 keypoints["wrist_left_Y"] = left_hand[mp_hands.HandLandmark.WRIST].y
+#
+#             # Process right hand landmarks
+#             if results.right_hand_landmarks:
+#                 right_hand = results.right_hand_landmarks.landmark
+#
+#                 # Index finger
+#                 keypoints["indexDIP_right_X"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_DIP].x
+#                 keypoints["indexDIP_right_Y"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_DIP].y
+#                 keypoints["indexMCP_right_X"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
+#                 keypoints["indexMCP_right_Y"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
+#                 keypoints["indexPIP_right_X"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_PIP].x
+#                 keypoints["indexPIP_right_Y"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_PIP].y
+#                 keypoints["indexTip_right_X"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_TIP].x
+#                 keypoints["indexTip_right_Y"] = right_hand[mp_hands.HandLandmark.INDEX_FINGER_TIP].y
+#
+#                 # Little finger
+#                 keypoints["littleDIP_right_X"] = right_hand[mp_hands.HandLandmark.PINKY_DIP].x
+#                 keypoints["littleDIP_right_Y"] = right_hand[mp_hands.HandLandmark.PINKY_DIP].y
+#                 keypoints["littleMCP_right_X"] = right_hand[mp_hands.HandLandmark.PINKY_MCP].x
+#                 keypoints["littleMCP_right_Y"] = right_hand[mp_hands.HandLandmark.PINKY_MCP].y
+#                 keypoints["littlePIP_right_X"] = right_hand[mp_hands.HandLandmark.PINKY_PIP].x
+#                 keypoints["littlePIP_right_Y"] = right_hand[mp_hands.HandLandmark.PINKY_PIP].y
+#                 keypoints["littleTip_right_X"] = right_hand[mp_hands.HandLandmark.PINKY_TIP].x
+#                 keypoints["littleTip_right_Y"] = right_hand[mp_hands.HandLandmark.PINKY_TIP].y
+#
+#                 # Middle finger
+#                 keypoints["middleDIP_right_X"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_DIP].x
+#                 keypoints["middleDIP_right_Y"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_DIP].y
+#                 keypoints["middleMCP_right_X"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x
+#                 keypoints["middleMCP_right_Y"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
+#                 keypoints["middlePIP_right_X"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].x
+#                 keypoints["middlePIP_right_Y"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].y
+#                 keypoints["middleTip_right_X"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].x
+#                 keypoints["middleTip_right_Y"] = right_hand[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y
+#
+#                 # Ring finger
+#                 keypoints["ringDIP_right_X"] = right_hand[mp_hands.HandLandmark.RING_FINGER_DIP].x
+#                 keypoints["ringDIP_right_Y"] = right_hand[mp_hands.HandLandmark.RING_FINGER_DIP].y
+#                 keypoints["ringMCP_right_X"] = right_hand[mp_hands.HandLandmark.RING_FINGER_MCP].x
+#                 keypoints["ringMCP_right_Y"] = right_hand[mp_hands.HandLandmark.RING_FINGER_MCP].y
+#                 keypoints["ringPIP_right_X"] = right_hand[mp_hands.HandLandmark.RING_FINGER_PIP].x
+#                 keypoints["ringPIP_right_Y"] = right_hand[mp_hands.HandLandmark.RING_FINGER_PIP].y
+#                 keypoints["ringTip_right_X"] = right_hand[mp_hands.HandLandmark.RING_FINGER_TIP].x
+#                 keypoints["ringTip_right_Y"] = right_hand[mp_hands.HandLandmark.RING_FINGER_TIP].y
+#
+#                 # Thumb
+#                 keypoints["thumbCMC_right_X"] = right_hand[mp_hands.HandLandmark.THUMB_CMC].x
+#                 keypoints["thumbCMC_right_Y"] = right_hand[mp_hands.HandLandmark.THUMB_CMC].y
+#                 keypoints["thumbIP_right_X"] = right_hand[mp_hands.HandLandmark.THUMB_IP].x
+#                 keypoints["thumbIP_right_Y"] = right_hand[mp_hands.HandLandmark.THUMB_IP].y
+#                 keypoints["thumbMP_right_X"] = right_hand[mp_hands.HandLandmark.THUMB_MCP].x
+#                 keypoints["thumbMP_right_Y"] = right_hand[mp_hands.HandLandmark.THUMB_MCP].y
+#                 keypoints["thumbTip_right_X"] = right_hand[mp_hands.HandLandmark.THUMB_TIP].x
+#                 keypoints["thumbTip_right_Y"] = right_hand[mp_hands.HandLandmark.THUMB_TIP].y
+#
+#                 # Right wrist
+#                 keypoints["wrist_right_X"] = right_hand[mp_hands.HandLandmark.WRIST].x
+#                 keypoints["wrist_right_Y"] = right_hand[mp_hands.HandLandmark.WRIST].y
+#
+#             # Process pose landmarks
+#             if results.pose_landmarks:
+#                 pose = results.pose_landmarks.landmark
+#
+#                 # Left body parts
+#                 keypoints["leftEar_X"] = pose[mp_pose.PoseLandmark.LEFT_EAR].x
+#                 keypoints["leftEar_Y"] = pose[mp_pose.PoseLandmark.LEFT_EAR].y
+#                 keypoints["leftElbow_X"] = pose[mp_pose.PoseLandmark.LEFT_ELBOW].x
+#                 keypoints["leftElbow_Y"] = pose[mp_pose.PoseLandmark.LEFT_ELBOW].y
+#                 keypoints["leftEye_X"] = pose[mp_pose.PoseLandmark.LEFT_EYE].x
+#                 keypoints["leftEye_Y"] = pose[mp_pose.PoseLandmark.LEFT_EYE].y
+#                 keypoints["leftShoulder_X"] = pose[mp_pose.PoseLandmark.LEFT_SHOULDER].x
+#                 keypoints["leftShoulder_Y"] = pose[mp_pose.PoseLandmark.LEFT_SHOULDER].y
+#                 keypoints["leftWrist_X"] = pose[mp_pose.PoseLandmark.LEFT_WRIST].x
+#                 keypoints["leftWrist_Y"] = pose[mp_pose.PoseLandmark.LEFT_WRIST].y
+#
+#                 # Right body parts
+#                 keypoints["rightEar_X"] = pose[mp_pose.PoseLandmark.RIGHT_EAR].x
+#                 keypoints["rightEar_Y"] = pose[mp_pose.PoseLandmark.RIGHT_EAR].y
+#                 keypoints["rightElbow_X"] = pose[mp_pose.PoseLandmark.RIGHT_ELBOW].x
+#                 keypoints["rightElbow_Y"] = pose[mp_pose.PoseLandmark.RIGHT_ELBOW].y
+#                 keypoints["rightEye_X"] = pose[mp_pose.PoseLandmark.RIGHT_EYE].x
+#                 keypoints["rightEye_Y"] = pose[mp_pose.PoseLandmark.RIGHT_EYE].y
+#                 keypoints["rightShoulder_X"] = pose[mp_pose.PoseLandmark.RIGHT_SHOULDER].x
+#                 keypoints["rightShoulder_Y"] = pose[mp_pose.PoseLandmark.RIGHT_SHOULDER].y
+#                 keypoints["rightWrist_X"] = pose[mp_pose.PoseLandmark.RIGHT_WRIST].x
+#                 keypoints["rightWrist_Y"] = pose[mp_pose.PoseLandmark.RIGHT_WRIST].y
+#
+#                 # Center body parts
+#                 keypoints["neck_X"] = pose[mp_pose.PoseLandmark.NOSE].x  # Using nose as neck proxy
+#                 keypoints["neck_Y"] = pose[mp_pose.PoseLandmark.NOSE].y
+#                 keypoints["nose_X"] = pose[mp_pose.PoseLandmark.NOSE].x
+#                 keypoints["nose_Y"] = pose[mp_pose.PoseLandmark.NOSE].y
+#                 keypoints["root_X"] = (pose[mp_pose.PoseLandmark.LEFT_HIP].x + pose[mp_pose.PoseLandmark.RIGHT_HIP].x) / 2
+#                 keypoints["root_Y"] = (pose[mp_pose.PoseLandmark.LEFT_HIP].y + pose[mp_pose.PoseLandmark.RIGHT_HIP].y) / 2
+#
+#             # Append all keypoints for this frame
+#             for k, v in keypoints.items():
+#                 frame_data[k].append(v)
+#
+#     cap.release()
+#
+#     video_row = {
+#         'labels': label,
+#         'video_fps': fps,
+#         'video_size_height': height,
+#         'video_size_width': width
+#     }
+#     for i in frame_data:
+#         if len(frame_data[i]) < target_length:
+#             frame_data[i] +=  [fill_value] * (target_length - len(frame_data[i]))
+#     frame_data.update(video_row)
+#     return frame_data
+#
+#
+# def load_gloss_to_label_map(label_txt_path):
+#     """从 WLASL100labels.txt 加载 gloss -> label_id（int）"""
+#     gloss2label = {}
+#     with open(label_txt_path, "r", encoding="utf-8") as f:
+#         for line in f:
+#             parts = line.strip().split()
+#             if len(parts) == 2:
+#                 label_id, gloss = parts
+#                 gloss2label[gloss] = int(label_id)
+#     return gloss2label
+#
+#
+# def load_video_to_gloss_map(json_path):
+#     """从 WLASL_v0.3.json 加载 video_id -> gloss 映射"""
+#     import json
+#     with open(json_path, "r", encoding="utf-8") as f:
+#         data = json.load(f)
+#
+#     video2gloss = {}
+#     for entry in data:
+#         gloss = entry["gloss"]
+#         for inst in entry["instances"]:
+#             video_id = inst["video_id"]
+#             video2gloss[video_id] = gloss
+#     return video2gloss
+#
+# def process_single_video(video_dir, video_id, output_dir):
+#     gloss2label = load_gloss_to_label_map("../WLASL100labels.txt")
+#     video2gloss = load_video_to_gloss_map("../WLASL_v0.3.json")
+#
+#     if video_id not in video2gloss:
+#         print(f"❌ Cannot find video_id '{video_id}' in JSON mapping.")
+#         return None
+#
+#     gloss = video2gloss[video_id]
+#     label = gloss2label.get(gloss)
+#     if label is None:
+#         print(f"❌ Cannot find label for gloss '{gloss}'")
+#         return None
+#
+#     video_extensions = ['.mp4', '.avi', '.mov', '.mkv']
+#     video_path = None
+#     for ext in video_extensions:
+#         candidate = os.path.join(video_dir, video_id + ext)
+#         if os.path.exists(candidate):
+#             video_path = candidate
+#             break
+#
+#     if video_path is None:
+#         print(f"❌ Video file for ID '{video_id}' not found in directory {video_dir}")
+#         return None
+#
+#     print(f"🔍 Processing video: {video_path}")
+#     row_data = extract_video_keypoints(video_path, video_id)
+#
+#     df = pd.DataFrame([row_data], columns=CSV_COLUMNS)
+#     os.makedirs(output_dir, exist_ok=True)
+#     output_path = os.path.join(output_dir, f"{video_id}.csv")
+#     df.to_csv(output_path, index=False)
+#     print(f"✅ Saved keypoints to: {output_path}")
+#
 def parse_args():
     parser = argparse.ArgumentParser(description="参数解析函数示例")
-    parser.add_argument('--video_path', type=str, required=True,
+    parser.add_argument('--video_dir', type=str, required=True,
                         help='The path to the dataset that is being annoted')
+    parser.add_argument('--video_id', type=str, required=True,
+                        help='The video name, without extension')
     parser.add_argument('--dataset', type=str, required=True, help='The name of the dataset.')
+    parser.add_argument('--gloss', type=str, required=False, help='The gloss the video.')
     # parser.add_argument('--gloss', type=str, required=False, help='The gloss of the dataset, will be recognised later')
     return parser.parse_args()
 
-def diff_in_z(v1, v2):
-    z_diff = abs(v1[2] - v2[2])
-    z_thresh = 0.1
-    if z_diff > z_thresh:
-        return True
-    return False
-
-
-
-
-def compute_hand_rotation(wrist, index, picky):
-    """Given coordinates of wrist, index, and picky, compute normal vector of the palm"""
-    v1 = np.array(picky) - np.array(wrist)
-    v2 = np.array(index) - np.array(wrist)
-
-    normal = np.cross(v1, v2)
-
-    # normalisation
-    normal = normal / np.linalg.norm(normal)
-
-    # rotation matrix
-    ref_vector = np.array([0, 0, 1])  # reference direction（Z-axis）
-    rot_matrix = np.linalg.inv(R.align_vectors([normal], [ref_vector])[0].as_matrix())
-
-    # convert to Euler angle (yaw, pitch, roll)
-    yaw, pitch, roll = R.from_matrix(rot_matrix).as_euler('zyx', degrees=True)
-
-    return normal, yaw, pitch, roll
 
 # Calculate angle between two vectors
 def calculate_angle(a, b, c, normal):
@@ -133,45 +465,6 @@ def extract_finger_angles_all_frames(hand_landmarks_3d, joint_triplets, normal_v
     return angles_array
 
 
-def review_keyframes(video_path, keyframes):
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        print("Error: Could not open video.")
-        return
-
-    frame_idx = 0
-    keyframe_set = set(keyframes)
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        if frame_idx in keyframe_set:
-            # 显示帧号
-            cv2.putText(frame, f"Keyframe: {frame_idx}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (0, 0, 255), 2, cv2.LINE_AA)
-
-            # 显示帧画面
-            cv2.imshow("Keyframe Viewer", frame)
-
-            # 等待按键，按任意键继续，按'q'退出
-            key = cv2.waitKey(0)
-            if key == ord('q'):
-                print("User quit.")
-                break
-        else:
-            # 非关键帧跳过显示
-            pass
-
-        frame_idx += 1
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-# --------------------------------------
-# Construct and write XML file
-
 def print_keyframe_angles(hand_name, keyframes, all_angles):
     print(f"\n{hand_name} hand keyframe angles:")
     for idx in keyframes:
@@ -191,7 +484,7 @@ def print_keyframe_angles(hand_name, keyframes, all_angles):
                 print(f"  f{f}: j1={j1_str}, j2={j2_str}, j3={j3_str}")
 
 
-def first_time():
+def main():
     """
     Process the input video for the first time. Identify the type of the movement and determine key frames for
     furture notation.
@@ -212,57 +505,74 @@ def first_time():
         "f3_j1", "f3_j2", "f3_j3",
         "f4_j1", "f4_j2", "f4_j3"
     ]
-
     args = parse_args()
-    video_path = args.video_path
+    video_dir = args.video_dir
+    video_id = args.video_id
     dataset = args.dataset
+    gloss = args.gloss
+    video_path = os.path.join(video_dir, video_id+".mp4")
+    print("Now processing:", video_path)
+    # output_dir = "..\data\predicted_label"
 
-    # print(file_path)
-    video_name = os.path.splitext(os.path.basename(video_path))[0]
-    print(video_name)
-    output_path = os.path.join('../data/processed/video_with_frame_id', 'frame'+video_name+'.mp4')
-    print(output_path)
-    left_hand, right_hand, left_wrist, right_wrist, pose_landmarks = extract_coordinates.get_coordinates(video_path)
+
+    # # gloss recognition using Siformer
+    # # first pre-preocess the video and extract skeleton data into csv file
+    #
+    # process_single_video(video_dir, video_id, output_dir)
+    # subprocess.run([
+    #     "python", "../utils/data_preprocess.py",
+    #     "--video_dir", video_dir,
+    #     "--video_id", video_id,
+    #     "--output_dir", "../slr-model/Siformer/datasets/temp"
+    # ]) # this will generate a csv file containing one row of skeleton sequence data of input video into temp.csv file
+    #
+    # # 上面的代码没问题了
+    # # secondly make prediction
+    # subprocess.run([
+    #     "python",   "../slr-model/Siformer/predict.py",
+    #     "--model_path", "../slr-model/Siformer/out-checkpoints/WLASL100v3/checkpoint_t_10.pth",
+    #     "--csv_path", "../slr-model/Siformer/datasets/temp/"+video_id+".csv"
+    # ], capture_output=True, text=True)
+    # predicted_path = os.path.join("../data/predicted_label/", video_id+'.csv')
+    # data = pd.read_csv(predicted_path)
+    #
+    # for item in data:
+    #     print(item)
+    #     # print(f"Video ID: {item[0]}, Predicted Label: {item[1]}")
+
+    video_output_path = os.path.join(r'D:\project_codes\xxyproject\data\processed\video_with_frame_id', f'frame'+video_id+'.mp4')
+
+    right_hand, left_hand, right_wrist, left_wrist, pose_landmarks = extract_coordinates.get_coordinates(video_path)
     print("Coordinates successfully detected!")
-    # print("len(left_hand):", len(left_hand))
-    # print("len(right_hand):", len(right_hand))
-    # print("len(pose_landmarks):", len(pose_landmarks))
-    # print("left_hand_location_by_frame:", left_hand_location_by_frame)
+
 
     left_hand_angles = extract_finger_angles_all_frames(left_hand, joint_triplets)
     right_hand_angles = extract_finger_angles_all_frames(right_hand, joint_triplets)
-    # print("left_hand_angles:", left_hand_angles)
-    # print("right_hand_angles:", right_hand_angles)
 
-    left_wrist_seq, left_thumb_seq, left_index_seq = extract_coordinates.extract_keypoints_from_hand_seq(left_hand)
-    right_wrist_seq, right_thumb_seq, right_index_seq = extract_coordinates.extract_keypoints_from_hand_seq(right_hand)
+
+    left_wrist_seq, left_middle_seq, left_pinky_seq = extract_coordinates.extract_keypoints_from_hand_seq(left_hand)
+    right_wrist_seq, right_middle_seq, right_pinky_seq = extract_coordinates.extract_keypoints_from_hand_seq(right_hand)
 
 
     left_seg, right_seg, left_mid, right_mid = keyframes_detection_and_notation.process_hand_landmarks(left_wrist, right_wrist,left_hand_angles, right_hand_angles)
 
     left_location = hand_location.calculate_hand_locations(
-        pose_landmarks, left_hand,
-        left_seg, left_mid, is_left_hand=True
+        pose_landmarks, left_hand, is_left_hand=False
     )
     right_location = hand_location.calculate_hand_locations(
-        pose_landmarks, right_hand,
-        right_seg, right_mid, is_left_hand=False
+        pose_landmarks, right_hand, is_left_hand=True
     )
-    # print("left_location",left_location)
-    # print("right_location", right_location)
 
-    left_orientation = hand_rotation.calculate_hand_orientations(left_wrist_seq, left_thumb_seq, left_index_seq, left_seg, left_mid)
-    right_orientation = hand_rotation.calculate_hand_orientations(right_wrist_seq, right_thumb_seq, right_index_seq,  right_seg, right_mid)
+    left_orientation = hand_rotation.calculate_hand_orientations(left_wrist_seq, left_middle_seq, left_pinky_seq, is_right=False)
+    right_orientation = hand_rotation.calculate_hand_orientations(right_wrist_seq, right_middle_seq, right_pinky_seq, is_right=True)
 
-    # print(right_orientation)
-
-    cap, video_id = load_video(video_path)
+    cap, _ = load_video(video_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
     # 设置编码器并创建 VideoWriter 对象
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 或使用 'XVID'
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    out = cv2.VideoWriter(video_output_path, fourcc, fps, (width, height))
     if not out.isOpened():
         print("Failed to open VideoWriter!")
     frame_idx = 0
@@ -272,7 +582,6 @@ def first_time():
             break
         cv2.putText(frame, f"Frame: {frame_idx}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        # show result
         out.write(frame)
         #
         # cv2.imshow(video_id, frame)
@@ -283,24 +592,15 @@ def first_time():
     out.release()
     cv2.destroyAllWindows()
 
-    gloss = "N/A"
+    if not gloss:
+        gloss = "N/A"
 
-    # for (start, end) in left_seg:
-    #     start_hand_landmarks = left_hand[start]
-    #     end_hand_landmarks = left_hand[end]
-    #     normal, yaw, pitch, roll = hand_rotation.compute_hand_rotation(start_hand_landmarks[0], start_hand_landmarks[5], start_hand_landmarks[17])
-    #     left_hand_location = left_hand_location_by_frame[start]
-    #     construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB',
-    #                                  movement=None)
-
-    #     normal, yaw, pitch, roll = hand_rotation.compute_hand_rotation(end_hand_landmarks[0], end_hand_landmarks[5], end_hand_landmarks[17])
-    xml_name = f"../data/annotations/out-{video_name}.xml"
+    xml_name = fr"D:\project_codes\xxyproject\data\annotations\out-{video_id}.xml"
     construct_xml.generate_xml(left_hand_angles, right_hand_angles, left_orientation, right_orientation, left_location,right_location, left_seg, right_seg, left_mid, right_mid, dataset, gloss, output_path=xml_name)
-    # construct_xml.xml_sign_block(dataset, gloss, left_hand_location, left_hand_angles, yaw, pitch, roll, side='AB', movement=None)
-    #
 
 
-def main():
+
+def test():
     args = parse_args()
     video_path = args.video_path
     dataset = args.dataset
@@ -486,5 +786,5 @@ def main():
 
 
 if __name__ == '__main__':
-    first_time()
+    main()
     # try_new_method()

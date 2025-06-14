@@ -51,6 +51,8 @@ def get_coordinates(file_path):
 
     cap, video_id = load_video(file_path)
 
+
+
     # Get video frame rate
     fps = cap.get(cv2.CAP_PROP_FPS)
     # time_per_frame = 1 / fps
@@ -65,8 +67,6 @@ def get_coordinates(file_path):
     left_wrist = []
     right_wrist = []
 
-    left_hand_location_by_frame = []
-    right_hand_location_by_frame = []
 
     pose_landmarks_seq = []
 
@@ -80,7 +80,6 @@ def get_coordinates(file_path):
 
         # frame append
         frames.append(rgb_frame)
-
 
         curr_left_hand = np.full((21, 3), np.nan)
         curr_right_hand = np.full((21, 3), np.nan)
@@ -120,25 +119,24 @@ def get_coordinates(file_path):
     cv2.destroyAllWindows()
 
     return left_hand, right_hand, left_wrist, right_wrist, pose_landmarks_seq
-    # return left_hand, right_hand, left_wrist, right_wrist, left_hand_location_by_frame, right_hand_location_by_frame, pose_landmarks_seq
 
 def extract_keypoints_from_hand_seq(hand_seq):
     wrist_seq = []
-    thumb_seq = []
-    index_seq = []
+    pinky_seq = []
+    middle_seq = []
 
     for landmarks in hand_seq:
         if isinstance(landmarks, np.ndarray) and landmarks.shape == (21, 3):
             wrist_seq.append(landmarks[0])   # wrist
-            thumb_seq.append(landmarks[4])   # thumb tip
-            index_seq.append(landmarks[8])   # index tip
+            pinky_seq.append(landmarks[17])   # pinky mcp
+            middle_seq.append(landmarks[9])   # middle mcp
         else:
             # 补nan（无效帧）
             wrist_seq.append([np.nan, np.nan, np.nan])
-            thumb_seq.append([np.nan, np.nan, np.nan])
-            index_seq.append([np.nan, np.nan, np.nan])
+            pinky_seq.append([np.nan, np.nan, np.nan])
+            middle_seq.append([np.nan, np.nan, np.nan])
 
-    return wrist_seq, thumb_seq, index_seq
+    return wrist_seq, middle_seq, pinky_seq
 
 
 def main():

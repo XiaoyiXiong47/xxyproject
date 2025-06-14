@@ -324,6 +324,8 @@ def generate_xml(left_angles, right_angles, left_orientation, right_orientation,
     root.set('type', 'sign')
 
     ET.SubElement(root, 'gloss', dataset=dataset, gloss=gloss)
+    right_mid = [[frame for frame in right_mid if start < frame < end] for start, end in right_seg]
+    left_mid = [[frame for frame in left_mid if start < frame < end] for start, end in left_seg]
 
     seq_num = 1
 
