@@ -23,7 +23,7 @@ def convert_axes(hand_coord, ref_coord, is_left_hand=False):
     """
 
     x = -(hand_coord[0] - ref_coord[0])  if is_left_hand else (hand_coord[0] - ref_coord[0]) # x flips for left hand
-    y = -(hand_coord[1] - ref_coord[1])  # upward is positive
+    y = hand_coord[1] - ref_coord[1]  # down is positive
     z = -(hand_coord[2] - ref_coord[2])  # forward is positive
     return np.array([x, y, z])
 

@@ -327,8 +327,8 @@ def generate_wlasl_csv(video_dir, output_csv="wlasl_output.csv"):
     all_data = []
 
     # 读取映射
-    gloss2label = load_gloss_to_label_map(".\WLASL100labels.txt")
-    video2gloss = load_video_to_gloss_map(".\WLASL_v0.3.json", valid_gloss_set=gloss2label.keys())
+    gloss2label = load_gloss_to_label_map(r"D:\project_codes\xxyproject\WLASL100labels.txt")
+    video2gloss = load_video_to_gloss_map(r"D:\project_codes\xxyproject\WLASL_v0.3.json", valid_gloss_set=gloss2label.keys())
 
     # 收集视频文件
     video_extensions = ('.mp4', '.avi', '.mov', '.mkv')
@@ -402,8 +402,8 @@ def generate_wlasl_csv(video_dir, output_csv="wlasl_output.csv"):
 
 # Example usage
 if __name__ == "__main__":
-    video_directory = r"D:\project_codes\xxyproject\data\raw\testing"  # Change to your video directory
-    output_filename = r"D:\project_codes\xxyproject\slr-model\Siformer\datasets\processed_testing.csv"
+    video_directory = r"D:\project_codes\xxyproject\data\raw\WLASL100\test"  # Change to your video directory
+    output_filename = r"D:\project_codes\xxyproject\slr-model\Siformer\datasets\processed_wlasl100_test.csv"
     generate_wlasl_csv(video_directory, output_filename)
 
     # base_dir = r"..\data\raw\WLASL100"

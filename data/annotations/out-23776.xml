@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<sem type="sign">
+    <gloss dataset="WLASL100" gloss="bird"/>
+    <seq number="1">
+        <hand side="A">
+            <f0 j1="90.0" j2="90.0" j3="90.0"/>
+            <f1 j1="90.0" j2="90.0" j3="90.0"/>
+            <f2 j1="90.0" j2="90.0" j3="90.0"/>
+            <f3 j1="90.0" j2="90.0" j3="90.0"/>
+            <f4 j1="90.0" j2="90.0" j3="90.0"/>
+            <orientation xAngle="nan" yAngle="nan" zAngle="nan"/>
+            <location>
+                <loc x="0" y="0" z="0"/>
+            </location>
+            <movement>
+                <end>
+                    <hand side="A">
+                        <f0 j1="15.0" j2="15.0" j3="15.0"/>
+                        <f1 j1="15.0" j2="30.0" j3="15.0"/>
+                        <f2 j1="15.0" j2="30.0" j3="15.0"/>
+                        <f3 j1="15.0" j2="15.0" j3="15.0"/>
+                        <f4 j1="30.0" j2="30.0" j3="15.0"/>
+                        <orientation xAngle="15" yAngle="135" zAngle="-105"/>
+                        <location>
+                            <loc x="-100" y="450" z="-550"/>
+                        </location>
+                    </hand>
+                </end>
+            </movement>
+        </hand>
+        <hand side="B">
+            <f0 j1="0.0" j2="30.0" j3="0.0"/>
+            <f1 j1="15.0" j2="30.0" j3="0.0"/>
+            <f2 j1="15.0" j2="15.0" j3="0.0"/>
+            <f3 j1="15.0" j2="15.0" j3="0.0"/>
+            <f4 j1="15.0" j2="15.0" j3="15.0"/>
+            <orientation xAngle="45" yAngle="105" zAngle="75"/>
+            <location>
+                <loc x="-300" y="350" z="-300"/>
+            </location>
+            <movement>
+                <end>
+                    <hand side="B">
+                        <f0 j1="30.0" j2="45.0" j3="45.0"/>
+                        <f1 j1="90.0" j2="75.0" j3="75.0"/>
+                        <f2 j1="90.0" j2="90.0" j3="0.0"/>
+                        <f3 j1="75.0" j2="90.0" j3="15.0"/>
+                        <f4 j1="75.0" j2="90.0" j3="15.0"/>
+                        <orientation xAngle="60" yAngle="-90" zAngle="0"/>
+                        <location>
+                            <loc x="-50" y="750" z="-650"/>
+                        </location>
+                    </hand>
+                </end>
+            </movement>
+        </hand>
+    </seq>
+</sem>

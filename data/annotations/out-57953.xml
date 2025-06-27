@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<sem type="sign">
+    <gloss dataset="WLASL100" gloss="thin"/>
+    <seq number="1">
+        <hand side="B">
+            <f0 j1="15.0" j2="15.0" j3="15.0"/>
+            <f1 j1="30.0" j2="0.0" j3="15.0"/>
+            <f2 j1="15.0" j2="75.0" j3="75.0"/>
+            <f3 j1="0.0" j2="45.0" j3="90.0"/>
+            <f4 j1="30.0" j2="0.0" j3="0.0"/>
+            <orientation xAngle="15" yAngle="-180" zAngle="30"/>
+            <location>
+                <loc x="150" y="100" z="-50"/>
+            </location>
+            <movement>
+                <end>
+                    <hand side="B">
+                        <f0 j1="15.0" j2="15.0" j3="0.0"/>
+                        <f1 j1="45.0" j2="90.0" j3="30.0"/>
+                        <f2 j1="45.0" j2="90.0" j3="30.0"/>
+                        <f3 j1="30.0" j2="90.0" j3="30.0"/>
+                        <f4 j1="15.0" j2="15.0" j3="15.0"/>
+                        <orientation xAngle="15" yAngle="-165" zAngle="30"/>
+                        <location>
+                            <loc x="200" y="-200" z="0"/>
+                        </location>
+                    </hand>
+                </end>
+            </movement>
+        </hand>
+    </seq>
+</sem>
